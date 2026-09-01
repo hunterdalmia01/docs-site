@@ -1,0 +1,1090 @@
+<title>Vue.js Field Notes</title>
+<style>
+  :root{
+    --bg:#f5f8f5;
+    --surface:#ffffff;
+    --surface-2:#ecf3ed;
+    --text:#182420;
+    --text-dim:#55655c;
+    --accent:#2f8f5b;
+    --accent-ink:#1d5c3a;
+    --border:#dde6dd;
+    --code-bg:#10221a;
+    --code-text:#d8ece0;
+    --code-key:#7fd9ae;
+    --danger:#b5502c;
+    --danger-soft:#f6e9e2;
+    --radius:10px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0d1512;
+      --surface:#131f19;
+      --surface-2:#182720;
+      --text:#e7ece8;
+      --text-dim:#96a49c;
+      --accent:#4fd393;
+      --accent-ink:#b7f3d4;
+      --border:#233830;
+      --code-bg:#0a1712;
+      --code-text:#cfe9dc;
+      --code-key:#6fe0b0;
+      --danger:#e0906a;
+      --danger-soft:#2c1f18;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0d1512;
+    --surface:#131f19;
+    --surface-2:#182720;
+    --text:#e7ece8;
+    --text-dim:#96a49c;
+    --accent:#4fd393;
+    --accent-ink:#b7f3d4;
+    --border:#233830;
+    --code-bg:#0a1712;
+    --code-text:#cfe9dc;
+    --code-key:#6fe0b0;
+    --danger:#e0906a;
+    --danger-soft:#2c1f18;
+  }
+
+  *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+    line-height:1.65;
+    font-size:16px;
+  }
+  h1,h2,h3{
+    font-family:"Newsreader",Georgia,serif;
+    color:var(--text);
+    text-wrap:balance;
+    font-weight:600;
+  }
+  code, pre, .mono{
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  a{color:var(--accent);}
+
+  .layout{
+    display:grid;
+    grid-template-columns:280px minmax(0,1fr);
+    gap:0;
+    max-width:1220px;
+    margin:0 auto;
+  }
+  nav.toc{
+    border-right:1px solid var(--border);
+    padding:32px 20px 60px 28px;
+    position:sticky;
+    top:0;
+    align-self:start;
+    max-height:100vh;
+    overflow-y:auto;
+  }
+  nav.toc .eyebrow{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:6px;
+  }
+  nav.toc h2{
+    font-size:19px;
+    margin:0 0 4px;
+  }
+  nav.toc .sub{
+    color:var(--text-dim);
+    font-size:13px;
+    margin-bottom:20px;
+  }
+  nav.toc .group-label{
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    margin:18px 0 6px;
+  }
+  nav.toc ol{
+    list-style:none;
+    margin:0;
+    padding:0;
+    counter-reset:vid;
+  }
+  nav.toc li{
+    counter-increment:vid;
+  }
+  nav.toc a{
+    display:flex;
+    gap:8px;
+    padding:4px 6px;
+    border-radius:6px;
+    text-decoration:none;
+    color:var(--text-dim);
+    font-size:13px;
+    line-height:1.35;
+  }
+  nav.toc a::before{
+    content:counter(vid);
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px;
+    color:var(--accent);
+    flex:0 0 auto;
+    padding-top:1px;
+  }
+  nav.toc a:hover{
+    background:var(--surface-2);
+    color:var(--text);
+  }
+
+  main{
+    padding:48px 56px 120px;
+    min-width:0;
+  }
+  header.hero{
+    margin-bottom:44px;
+    padding-bottom:28px;
+    border-bottom:1px solid var(--border);
+  }
+  header.hero .eyebrow{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:14px;
+  }
+  header.hero h1{
+    font-size:38px;
+    margin:0 0 14px;
+    letter-spacing:-.01em;
+  }
+  header.hero p{
+    color:var(--text-dim);
+    max-width:66ch;
+    font-size:16px;
+    margin:0 0 14px;
+  }
+  header.hero .src{
+    font-size:13.5px;
+    color:var(--text-dim);
+  }
+  header.hero .src a{
+    color:var(--text);
+    border-bottom:1px solid var(--border);
+  }
+
+  section.topic{
+    margin-bottom:52px;
+    scroll-margin-top:24px;
+  }
+  section.topic .num{
+    font-family:"IBM Plex Mono",monospace;
+    color:var(--accent);
+    font-size:13px;
+    letter-spacing:.06em;
+  }
+  section.topic h2{
+    font-size:24px;
+    margin:4px 0 4px;
+  }
+  section.topic .meta{
+    color:var(--text-dim);
+    font-size:13px;
+    margin-bottom:16px;
+  }
+  section.topic p{
+    max-width:74ch;
+    margin:0 0 14px;
+  }
+  section.topic ul, section.topic ol.steps{
+    max-width:74ch;
+    margin:0 0 16px;
+    padding-left:22px;
+  }
+  section.topic li{
+    margin-bottom:6px;
+  }
+
+  .badge-row{display:flex;gap:8px;margin:0 0 6px;flex-wrap:wrap;}
+  .badge{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    padding:3px 9px;
+    border-radius:20px;
+    border:1px solid var(--border);
+  }
+  .badge.options{color:var(--text-dim);background:var(--surface-2);}
+  .badge.composition{color:var(--accent-ink);background:var(--surface-2);border-color:var(--accent);}
+
+  .callout{
+    max-width:74ch;
+    background:var(--surface-2);
+    border-left:3px solid var(--accent);
+    border-radius:0 8px 8px 0;
+    padding:12px 16px;
+    margin:0 0 16px;
+    font-size:14.5px;
+    color:var(--text-dim);
+  }
+  .callout strong{color:var(--text);}
+  .callout.warn{border-left-color:var(--danger);background:var(--danger-soft);}
+
+  pre{
+    background:var(--code-bg);
+    color:var(--code-text);
+    border-radius:var(--radius);
+    padding:16px 18px;
+    overflow-x:auto;
+    font-size:13.5px;
+    line-height:1.55;
+    max-width:80ch;
+    margin:0 0 16px;
+    border:1px solid var(--border);
+  }
+  pre .c{color:var(--code-key);opacity:.85;}
+  pre .tag{color:#c9a4f2;}
+
+  code.inline{
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    padding:1px 6px;
+    border-radius:5px;
+    font-size:13.5px;
+  }
+
+  table.cheat{
+    border-collapse:collapse;
+    max-width:80ch;
+    margin:0 0 18px;
+    font-size:14px;
+    width:100%;
+  }
+  table.cheat th, table.cheat td{
+    border:1px solid var(--border);
+    padding:8px 12px;
+    text-align:left;
+    vertical-align:top;
+  }
+  table.cheat th{
+    background:var(--surface-2);
+    font-family:"IBM Plex Mono",monospace;
+    font-size:12px;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+  }
+  .cheat-wrap{overflow-x:auto;}
+
+  .divider-label{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:12px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--accent);
+    border-top:1px solid var(--border);
+    padding-top:36px;
+    margin:0 0 22px;
+  }
+
+  footer.end{
+    border-top:1px solid var(--border);
+    margin-top:40px;
+    padding-top:24px;
+    color:var(--text-dim);
+    font-size:13.5px;
+    max-width:74ch;
+  }
+  footer.end a{color:var(--text);}
+
+  @media (max-width:860px){
+    .layout{grid-template-columns:1fr;}
+    nav.toc{position:relative;max-height:none;border-right:none;border-bottom:1px solid var(--border);}
+    main{padding:32px 20px 80px;}
+  }
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<div class="layout">
+  <nav class="toc">
+    <div class="eyebrow">Guide + tutorial notes</div>
+    <h2>Vue.js, cover to cover</h2>
+    <div class="sub">Official tutorial + full guide · 41 sections</div>
+
+    <div class="group-label">Getting started</div>
+    <ol>
+      <li><a href="#s1">Introduction</a></li>
+      <li><a href="#s2">Quick start</a></li>
+    </ol>
+
+    <div class="group-label">Essentials</div>
+    <ol start="3">
+      <li><a href="#s3">Creating an application</a></li>
+      <li><a href="#s4">Template syntax</a></li>
+      <li><a href="#s5">Reactivity fundamentals</a></li>
+      <li><a href="#s6">Computed properties</a></li>
+      <li><a href="#s7">Class & style bindings</a></li>
+      <li><a href="#s8">Conditional rendering</a></li>
+      <li><a href="#s9">List rendering</a></li>
+      <li><a href="#s10">Event handling</a></li>
+      <li><a href="#s11">Form input bindings</a></li>
+      <li><a href="#s12">Watchers</a></li>
+      <li><a href="#s13">Template refs</a></li>
+      <li><a href="#s14">Components basics</a></li>
+      <li><a href="#s15">Lifecycle hooks</a></li>
+    </ol>
+
+    <div class="group-label">Components in-depth</div>
+    <ol start="16">
+      <li><a href="#s16">Registration</a></li>
+      <li><a href="#s17">Props</a></li>
+      <li><a href="#s18">Component events</a></li>
+      <li><a href="#s19">Component v-model</a></li>
+      <li><a href="#s20">Fallthrough attributes</a></li>
+      <li><a href="#s21">Slots</a></li>
+      <li><a href="#s22">Provide / inject</a></li>
+      <li><a href="#s23">Async components</a></li>
+    </ol>
+
+    <div class="group-label">Reusability</div>
+    <ol start="24">
+      <li><a href="#s24">Composables</a></li>
+      <li><a href="#s25">Custom directives</a></li>
+      <li><a href="#s26">Plugins</a></li>
+    </ol>
+
+    <div class="group-label">Built-in components</div>
+    <ol start="27">
+      <li><a href="#s27">Transition</a></li>
+      <li><a href="#s28">TransitionGroup</a></li>
+      <li><a href="#s29">KeepAlive</a></li>
+      <li><a href="#s30">Teleport</a></li>
+      <li><a href="#s31">Suspense</a></li>
+    </ol>
+
+    <div class="group-label">Scaling up</div>
+    <ol start="32">
+      <li><a href="#s32">Single-file components</a></li>
+      <li><a href="#s33">Tooling</a></li>
+      <li><a href="#s34">Routing</a></li>
+      <li><a href="#s35">State management</a></li>
+      <li><a href="#s36">Testing</a></li>
+      <li><a href="#s37">Server-side rendering</a></li>
+    </ol>
+
+    <div class="group-label">Best practices</div>
+    <ol start="38">
+      <li><a href="#s38">Production deployment</a></li>
+      <li><a href="#s39">Performance</a></li>
+      <li><a href="#s40">Accessibility</a></li>
+      <li><a href="#s41">Security</a></li>
+    </ol>
+
+    <div class="group-label">Reference</div>
+    <ol start="42">
+      <li><a href="#cheatsheet">Cheatsheet</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <div class="eyebrow">Vue.js Field Notes</div>
+      <h1>Vue, from "what is a framework" to shipping in production</h1>
+      <p>A complete working reference combining the official <em>interactive tutorial</em> with the full <em>Vue.js Guide</em> — every page from Introduction through Security. Sections follow the guide's own structure: Essentials, Components In-Depth, Reusability, Built-in Components, Scaling Up, and Best Practices. Code samples pair the <strong>Options API</strong> and <strong>Composition API</strong> wherever the guide teaches both.</p>
+      <p class="src">Sources: <a href="https://vuejs.org/guide/introduction.html" target="_blank" rel="noopener">vuejs.org/guide/introduction.html</a> and <a href="https://vuejs.org/tutorial/" target="_blank" rel="noopener">vuejs.org/tutorial</a></p>
+    </header>
+
+    <section class="topic" id="s1">
+      <div class="num">01</div>
+      <h2>Introduction</h2>
+      <div class="meta">What Vue is, and the two ways to write it</div>
+      <p>Vue is a JavaScript framework for building user interfaces, built around a declarative, component-based programming model: describe what the UI should look like for a given state, and Vue renders and updates the DOM efficiently as that state changes. It scales from a single <code class="inline">&lt;script&gt;</code> tag enhancing a static page up to full single-page applications with routing, state management, and a build pipeline.</p>
+      <p>Two API styles cover the same underlying engine:</p>
+      <ul>
+        <li><strong>Options API</strong> — a component is an object with <code class="inline">data</code>, <code class="inline">methods</code>, <code class="inline">computed</code>, and lifecycle-hook options; <code class="inline">this</code> refers to the component instance inside them.</li>
+        <li><strong>Composition API</strong> — a component uses imported functions (<code class="inline">ref</code>, <code class="inline">reactive</code>, <code class="inline">computed</code>, <code class="inline">onMounted</code>, ...) inside a <code class="inline">setup()</code> function or, more commonly, a <code class="inline">&lt;script setup&gt;</code> block — better suited to extracting and reusing logic across components (see Composables).</li>
+      </ul>
+      <div class="callout">Both styles are fully supported and interoperable; the guide (and these notes) show both side by side rather than picking one as "correct." Composition API is generally preferred for larger, more complex components and for logic reuse; Options API keeps things simple and structured for smaller ones.</div>
+      <p>Vue components can be authored as <strong>Single-File Components</strong> (<code class="inline">.vue</code> files, compiled by a build step) or with plain JavaScript objects — no build step required, useful for progressively enhancing existing HTML.</p>
+    </section>
+
+    <section class="topic" id="s2">
+      <div class="num">02</div>
+      <h2>Quick start</h2>
+      <div class="meta">Two on-ramps: scaffolded project or CDN</div>
+      <pre><span class="c"># scaffolds a Vite-powered project, prompts for TS/Router/Pinia/testing</span>
+npm create vue@latest
+
+cd &lt;project-name&gt;
+npm install
+npm run dev</pre>
+      <p>For no-build, drop-in usage — enhancing a static page without a bundler:</p>
+      <pre>&lt;<span class="tag">script</span> src="https://unpkg.com/vue@3/dist/vue.global.js"&gt;&lt;/<span class="tag">script</span>&gt;
+
+&lt;<span class="tag">div</span> id="app"&gt;{{ message }}&lt;/<span class="tag">div</span>&gt;
+
+&lt;<span class="tag">script</span>&gt;
+  const { createApp } = Vue
+  createApp({
+    data() { return { message: 'Hello Vue!' } }
+  }).mount('#app')
+&lt;/<span class="tag">script</span>&gt;</pre>
+      <p><code class="inline">create-vue</code> (the official scaffolding tool, run via <code class="inline">npm create vue@latest</code>) is built on <strong>Vite</strong> and is the recommended starting point for any real application. The official <strong>Vue Devtools</strong> browser extension is worth installing early — it inspects component trees, reactive state, events, and routing/store state live.</p>
+    </section>
+
+    <div class="divider-label">Essentials</div>
+
+    <section class="topic" id="s3">
+      <div class="num">03</div>
+      <h2>Creating a Vue application</h2>
+      <div class="meta"><code class="inline">createApp</code>, mounting, and app-level config</div>
+      <pre>import { createApp } from 'vue'
+import App from './App.vue'
+
+const app = createApp(App)
+
+app.mount('#app')</pre>
+      <p>Every app needs a <strong>root component</strong> — everything else nests inside it. <code class="inline">createApp()</code> returns an application instance, which exposes app-level configuration before mounting: <code class="inline">app.component()</code> and <code class="inline">app.directive()</code> for global registration, <code class="inline">app.use()</code> for plugins, and <code class="inline">app.config.errorHandler</code> for a global error hook.</p>
+      <div class="callout">Multiple independent app instances can coexist on one page, each with its own mount point and configuration — useful when Vue is only powering isolated widgets on an otherwise server-rendered page.</div>
+    </section>
+
+    <section class="topic" id="s4">
+      <div class="num">04</div>
+      <h2>Template syntax</h2>
+      <div class="meta">Interpolation, directives, arguments, modifiers</div>
+      <pre><span class="c">&lt;!-- text interpolation --&gt;</span>
+&lt;<span class="tag">span</span>&gt;{{ msg }}&lt;/<span class="tag">span</span>&gt;
+
+<span class="c">&lt;!-- raw HTML (only for trusted content — see Security) --&gt;</span>
+&lt;<span class="tag">p</span> v-html="rawHtml"&gt;&lt;/<span class="tag">p</span>&gt;
+
+<span class="c">&lt;!-- directive, argument, and modifier --&gt;</span>
+&lt;<span class="tag">a</span> v-on:click.prevent="doSomething"&gt;link&lt;/<span class="tag">a</span>&gt;
+
+<span class="c">&lt;!-- dynamic argument --&gt;</span>
+&lt;<span class="tag">a</span> v-bind:[attributeName]="url"&gt;link&lt;/<span class="tag">a</span>&gt;</pre>
+      <p>Anatomy of a directive: <code class="inline">v-on<b>:click</b><b>.prevent</b>="doSomething"</code> — the part after the colon is the <strong>argument</strong> (which event, which attribute), and anything after a dot is a <strong>modifier</strong> that tweaks how the directive binds. Arguments can themselves be dynamic, computed from an expression in square brackets. Inside mustaches and directive values, only single JavaScript <em>expressions</em> are allowed — not statements or control flow.</p>
+    </section>
+
+    <section class="topic" id="s5">
+      <div class="num">05</div>
+      <h2>Reactivity fundamentals</h2>
+      <div class="meta"><code class="inline">ref()</code> vs <code class="inline">reactive()</code></div>
+      <pre>import { ref, reactive } from 'vue'
+
+const count = ref(0)        <span class="c">// wraps any value type; access/mutate via .value in JS</span>
+count.value++
+
+const state = reactive({ count: 0 })  <span class="c">// deep-reactive proxy of an object</span>
+state.count++</pre>
+      <p><code class="inline">ref()</code> can hold any value type (primitives included) and needs <code class="inline">.value</code> in JavaScript — but templates unwrap it automatically. <code class="inline">reactive()</code> only works on objects/arrays/Maps/Sets, returns a Proxy, and is deeply reactive (nested objects are automatically wrapped too).</p>
+      <div class="callout warn"><strong>Reactive limitations to remember:</strong> destructuring a property off a <code class="inline">reactive()</code> object loses its reactivity connection (use <code class="inline">toRefs()</code> to destructure safely); reassigning the whole object (<code class="inline">state = reactive({...})</code>) breaks the original reference. <code class="inline">ref()</code> doesn't have either problem, which is why many codebases default to <code class="inline">ref()</code> even for objects.</div>
+      <p>DOM updates from a state change are <strong>asynchronous and batched</strong> — Vue queues them and flushes once per "tick." To act on the DOM right after an update, await <code class="inline">nextTick()</code>.</p>
+    </section>
+
+    <section class="topic" id="s6">
+      <div class="num">06</div>
+      <h2>Computed properties</h2>
+      <div class="meta">Cached derived state, and when it can be writable</div>
+      <pre>const fullName = computed({
+  get() {
+    return `${firstName.value} ${lastName.value}`
+  },
+  set(newValue) {
+    ;[firstName.value, lastName.value] = newValue.split(' ')
+  }
+})</pre>
+      <p>A computed property caches its result and only recomputes when a tracked dependency changes — cheaper than a method call re-run on every render. Passing a plain getter function creates a read-only computed; passing <code class="inline">{ get, set }</code> creates a writable one.</p>
+      <div class="callout warn"><strong>Getters should be pure:</strong> no async work, no mutating other state, no DOM access inside a computed getter — it may run any number of times and should have no side effects.</div>
+    </section>
+
+    <section class="topic" id="s7">
+      <div class="num">07</div>
+      <h2>Class and style bindings</h2>
+      <div class="meta">Object and array syntax, merged with component classes</div>
+      <pre>&lt;<span class="tag">div</span>
+  :class="[isActive ? 'active' : '', errorClass]"
+  :class="{ active: isActive, 'text-danger': hasError }"
+&gt;&lt;/<span class="tag">div</span>&gt;
+
+&lt;<span class="tag">div</span> :style="[baseStyles, overridingStyles]"&gt;&lt;/<span class="tag">div</span>&gt;</pre>
+      <p>Array syntax applies a list of classes/style objects together. When <code class="inline">:class</code> or <code class="inline">:style</code> is used on a component tag, Vue merges it with the classes/styles the component's own root element already declares, rather than overwriting them.</p>
+    </section>
+
+    <section class="topic" id="s8">
+      <div class="num">08</div>
+      <h2>Conditional rendering</h2>
+      <div class="meta"><code class="inline">v-if</code> vs <code class="inline">v-show</code>, and <code class="inline">&lt;template&gt;</code> groups</div>
+      <pre>&lt;<span class="tag">template</span> v-if="ok"&gt;
+  <span class="c">&lt;!-- group multiple elements under one v-if, with no extra wrapper --&gt;</span>
+  &lt;<span class="tag">h1</span>&gt;Title&lt;/<span class="tag">h1</span>&gt;
+  &lt;<span class="tag">p</span>&gt;Paragraph&lt;/<span class="tag">p</span>&gt;
+&lt;/<span class="tag">template</span>&gt;</pre>
+      <p><code class="inline">v-if</code> is "real" conditional rendering — it destroys and recreates the element (and any component's local state) on toggle. <code class="inline">v-show</code> always renders the element and just toggles CSS <code class="inline">display</code>, so state and DOM structure survive toggles cheaply.</p>
+      <div class="callout warn">By default, Vue reuses matching elements across a <code class="inline">v-if</code>/<code class="inline">v-else</code> toggle for efficiency (e.g. an <code class="inline">&lt;input&gt;</code> keeps focus and typed value). Give elements distinct <code class="inline">:key</code>s if that reuse would be wrong for your case.</div>
+    </section>
+
+    <section class="topic" id="s9">
+      <div class="num">09</div>
+      <h2>List rendering</h2>
+      <div class="meta">Iterating arrays, objects, and ranges</div>
+      <pre>&lt;<span class="tag">li</span> v-for="(item, index) in items" :key="item.id"&gt;{{ index }} - {{ item.text }}&lt;/<span class="tag">li</span>&gt;
+&lt;<span class="tag">li</span> v-for="(value, key) in myObject" :key="key"&gt;{{ key }}: {{ value }}&lt;/<span class="tag">li</span>&gt;
+&lt;<span class="tag">span</span> v-for="n in 5" :key="n"&gt;{{ n }}&lt;/<span class="tag">span</span>&gt; <span class="c">&lt;!-- 1..5 --&gt;</span></pre>
+      <p>Vue detects and reacts to array <strong>mutation methods</strong> (<code class="inline">push</code>, <code class="inline">pop</code>, <code class="inline">splice</code>, <code class="inline">sort</code>, <code class="inline">reverse</code>, ...) automatically; a method that returns a new array (<code class="inline">filter</code>, <code class="inline">map</code>) needs its result reassigned back to the reactive reference.</p>
+      <div class="callout warn"><strong>Never combine <code class="inline">v-if</code> and <code class="inline">v-for</code> on the same element</strong> — the guide explicitly discourages it (and it's a lint rule in <code class="inline">eslint-plugin-vue</code>). Filter the source list with a computed property first, or move the <code class="inline">v-if</code> onto a wrapping <code class="inline">&lt;template&gt;</code>.</div>
+    </section>
+
+    <section class="topic" id="s10">
+      <div class="num">10</div>
+      <h2>Event handling</h2>
+      <div class="meta">Inline vs method handlers, modifiers, key modifiers</div>
+      <pre>&lt;<span class="tag">button</span> @click="count++"&gt;Add 1&lt;/<span class="tag">button</span>&gt;
+&lt;<span class="tag">button</span> @click="greet('hi', $event)"&gt;Greet&lt;/<span class="tag">button</span>&gt;
+
+&lt;<span class="tag">form</span> @submit.prevent="onSubmit"&gt;...&lt;/<span class="tag">form</span>&gt;
+&lt;<span class="tag">div</span> @click.self="onClickSelf"&gt;...&lt;/<span class="tag">div</span>&gt;
+&lt;<span class="tag">input</span> @keyup.enter="submit"&gt;</pre>
+      <table class="cheat">
+        <tr><th>Modifier</th><th>Effect</th></tr>
+        <tr><td><code class="inline">.stop</code></td><td><code class="inline">event.stopPropagation()</code></td></tr>
+        <tr><td><code class="inline">.prevent</code></td><td><code class="inline">event.preventDefault()</code></td></tr>
+        <tr><td><code class="inline">.self</code></td><td>Only trigger if the event's target is this element itself</td></tr>
+        <tr><td><code class="inline">.once</code></td><td>Trigger at most once</td></tr>
+        <tr><td><code class="inline">.capture</code>, <code class="inline">.passive</code></td><td>Map to the DOM listener's <code class="inline">capture</code>/<code class="inline">passive</code> options</td></tr>
+        <tr><td><code class="inline">.enter</code>, <code class="inline">.esc</code>, <code class="inline">.tab</code>, ...</td><td>Key modifiers — only fire for that key</td></tr>
+        <tr><td><code class="inline">.ctrl</code>, <code class="inline">.shift</code>, <code class="inline">.alt</code>, <code class="inline">.meta</code></td><td>System modifier keys — require that key held</td></tr>
+      </table>
+    </section>
+
+    <section class="topic" id="s11">
+      <div class="num">11</div>
+      <h2>Form input bindings</h2>
+      <div class="meta"><code class="inline">v-model</code> modifiers and multi-element forms</div>
+      <pre>&lt;<span class="tag">input</span> v-model.lazy="msg"&gt;    <span class="c">&lt;!-- sync on change, not every keystroke --&gt;</span>
+&lt;<span class="tag">input</span> v-model.number="age"&gt;   <span class="c">&lt;!-- cast to a Number automatically --&gt;</span>
+&lt;<span class="tag">input</span> v-model.trim="name"&gt;    <span class="c">&lt;!-- strip whitespace --&gt;</span>
+
+&lt;<span class="tag">input</span> type="checkbox" v-model="checkedNames" value="Jack"&gt;
+&lt;<span class="tag">select</span> v-model="selected" multiple&gt;
+  &lt;<span class="tag">option</span>&gt;A&lt;/<span class="tag">option</span>&gt;
+  &lt;<span class="tag">option</span>&gt;B&lt;/<span class="tag">option</span>&gt;
+&lt;/<span class="tag">select</span>&gt;</pre>
+      <p>Binding several checkboxes to the same array automatically pushes/removes each checkbox's <code class="inline">value</code> as it's checked/unchecked; a multi-select binds to an array of the selected options' values.</p>
+    </section>
+
+    <section class="topic" id="s12">
+      <div class="num">12</div>
+      <h2>Watchers</h2>
+      <div class="meta"><code class="inline">watch</code> vs <code class="inline">watchEffect</code>, deep watching, timing</div>
+      <pre>import { watch, watchEffect } from 'vue'
+
+<span class="c">// explicit source(s) + old/new values</span>
+watch(source, (newVal, oldVal) => { <span class="c">/* ... */</span> })
+
+<span class="c">// watch a nested property inside a reactive object</span>
+watch(() => state.someObject.nested, callback, { deep: true })
+
+<span class="c">// runs immediately, and re-runs whenever any reactive dep it read changes</span>
+watchEffect(() => {
+  console.log(count.value)
+})</pre>
+      <table class="cheat">
+        <tr><th>Option</th><th>Effect</th></tr>
+        <tr><td><code class="inline">immediate: true</code></td><td>Run the callback once right away, not just on the first change</td></tr>
+        <tr><td><code class="inline">deep: true</code></td><td>Watch every nested property, not just the top-level reference</td></tr>
+        <tr><td><code class="inline">flush: 'post'</code></td><td>Run the callback after Vue's DOM update, so template refs reflect the change</td></tr>
+      </table>
+      <p><code class="inline">watch</code> is lazy by default (runs only on change) and gives you both old and new values — best for a specific, known source. <code class="inline">watchEffect</code> auto-tracks whatever reactive state its function body reads — best when several sources should trigger the same effect and you don't need the previous value. Both return a stop handle: call it, e.g. <code class="inline">const stop = watchEffect(...); stop()</code>, to end the watcher manually.</p>
+    </section>
+
+    <section class="topic" id="s13">
+      <div class="num">13</div>
+      <h2>Template refs</h2>
+      <div class="meta">Refs in loops, function refs, and refs across components</div>
+      <pre><span class="c">// ref inside v-for — collects into an array, order not guaranteed</span>
+const itemRefs = ref([])
+</pre>
+      <pre>&lt;<span class="tag">li</span> v-for="item in list" :ref="itemRefs"&gt;{{ item }}&lt;/<span class="tag">li</span>&gt;</pre>
+      <p>A <code class="inline">ref</code> attribute can also take a function, called with the element on mount and with <code class="inline">null</code> on unmount — useful for full manual control. To access a <em>child component's</em> internals from the parent, the child must explicitly opt in with <code class="inline">defineExpose({ ... })</code>; by default a component's internals are private to outside refs.</p>
+    </section>
+
+    <section class="topic" id="s14">
+      <div class="num">14</div>
+      <h2>Components basics</h2>
+      <div class="meta">Defining, using, and dynamic components</div>
+      <pre>&lt;<span class="tag">component</span> :is="currentTab"&gt;&lt;/<span class="tag">component</span>&gt;
+
+&lt;<span class="tag">KeepAlive</span>&gt;
+  &lt;<span class="tag">component</span> :is="currentTab"&gt;&lt;/<span class="tag">component</span>&gt;
+&lt;/<span class="tag">KeepAlive</span>&gt;</pre>
+      <p><code class="inline">&lt;component :is="...">&lt;/component&gt;</code> switches between components dynamically by binding to a component object or its registered name. Wrapping it in <code class="inline">&lt;KeepAlive&gt;</code> preserves each tab's state across switches instead of destroying and recreating it (see Built-in Components).</p>
+      <div class="callout warn"><strong>DOM template parsing caveat:</strong> if a template is written directly in HTML (not inside an SFC or a string template), the browser's own HTML parser runs first and silently rewrites invalid nesting — e.g. a custom component inside a native <code class="inline">&lt;ul&gt;</code>/<code class="inline">&lt;table&gt;</code> gets hoisted out. Affects in-DOM templates only, not <code class="inline">.vue</code> files.</div>
+    </section>
+
+    <section class="topic" id="s15">
+      <div class="num">15</div>
+      <h2>Lifecycle hooks</h2>
+      <div class="meta">The full sequence, Composition and Options API</div>
+      <table class="cheat">
+        <tr><th>Composition API</th><th>Options API</th><th>Fires</th></tr>
+        <tr><td>—</td><td><code class="inline">beforeCreate</code></td><td>Before reactive state / events are set up (no Composition equivalent — <code class="inline">setup()</code> itself runs at this point)</td></tr>
+        <tr><td>—</td><td><code class="inline">created</code></td><td>After state and computed/watch are set up, before DOM mount</td></tr>
+        <tr><td><code class="inline">onBeforeMount</code></td><td><code class="inline">beforeMount</code></td><td>Right before first DOM render</td></tr>
+        <tr><td><code class="inline">onMounted</code></td><td><code class="inline">mounted</code></td><td>After the component's DOM is inserted — template refs are populated</td></tr>
+        <tr><td><code class="inline">onBeforeUpdate</code></td><td><code class="inline">beforeUpdate</code></td><td>Before the DOM re-patches from a reactive state change</td></tr>
+        <tr><td><code class="inline">onUpdated</code></td><td><code class="inline">updated</code></td><td>After the DOM re-patches</td></tr>
+        <tr><td><code class="inline">onBeforeUnmount</code></td><td><code class="inline">beforeUnmount</code></td><td>Right before teardown — component still fully functional</td></tr>
+        <tr><td><code class="inline">onUnmounted</code></td><td><code class="inline">unmounted</code></td><td>After teardown — clean up timers, listeners, subscriptions here</td></tr>
+        <tr><td><code class="inline">onActivated</code> / <code class="inline">onDeactivated</code></td><td>same names</td><td>Entering/leaving a <code class="inline">&lt;KeepAlive&gt;</code> cache, instead of full mount/unmount</td></tr>
+        <tr><td><code class="inline">onErrorCaptured</code></td><td>same name</td><td>An error from a descendant component propagates through here</td></tr>
+      </table>
+    </section>
+
+    <div class="divider-label">Components in-depth</div>
+
+    <section class="topic" id="s16">
+      <div class="num">16</div>
+      <h2>Component registration</h2>
+      <div class="meta">Global vs local</div>
+      <pre><span class="c">// global — available everywhere, but always bundled even if unused</span>
+app.component('MyComponent', MyComponent)
+
+<span class="c">// local — import + register per component (or auto-exposed by &lt;script setup&gt;)</span>
+import MyComponent from './MyComponent.vue'
+export default {
+  components: { MyComponent }
+}</pre>
+      <p>Local registration is the default recommendation: it keeps the dependency graph explicit and lets a bundler tree-shake unused components. Global registration trades that for convenience on components used nearly everywhere (e.g. a base button or icon set).</p>
+    </section>
+
+    <section class="topic" id="s17">
+      <div class="num">17</div>
+      <h2>Props</h2>
+      <div class="meta">Validation, casing, and one-way data flow</div>
+      <pre>defineProps({
+  title: String,
+  likes: { type: Number, default: 0 },
+  status: {
+    type: String,
+    required: true,
+    validator: (value) => ['ok', 'error'].includes(value)
+  }
+})</pre>
+      <p>Props declared in camelCase (<code class="inline">greetingMessage</code>) are passed from the parent template in kebab-case (<code class="inline">greeting-message</code>) — HTML attributes are case-insensitive, so this convention is required, not stylistic. A prop of type <code class="inline">Boolean</code> is cast: the attribute's mere presence, with no value, is treated as <code class="inline">true</code>.</p>
+      <div class="callout warn"><strong>Props flow one way, down.</strong> Mutating a prop inside the child is flagged by Vue's warning system, because the parent's next re-render can silently overwrite that local change. Copy it into local state (Options: a <code class="inline">data()</code> field seeded from the prop; Composition: <code class="inline">ref(props.foo)</code>) or derive a computed from it instead.</div>
+    </section>
+
+    <section class="topic" id="s18">
+      <div class="num">18</div>
+      <h2>Component events</h2>
+      <div class="meta">Declaring and validating <code class="inline">emits</code></div>
+      <pre>const emit = defineEmits({
+  submit: (payload) => {
+    if (!payload.email) {
+      console.warn('submit event missing email')
+      return false
+    }
+    return true
+  }
+})
+
+emit('submit', { email: 'a@b.com' })</pre>
+      <p>Declaring <code class="inline">emits</code> (as an array of names, or an object mapping name to a validator function) documents the component's public event contract and lets Vue warn on typos or bad payloads — the same spirit as prop validation, for the outgoing side.</p>
+    </section>
+
+    <section class="topic" id="s19">
+      <div class="num">19</div>
+      <h2>Component v-model</h2>
+      <div class="meta">Two-way binding on a custom component</div>
+      <pre><span class="c">&lt;!-- parent --&gt;</span>
+&lt;<span class="tag">CustomInput</span> v-model="searchText" /&gt;
+
+<span class="c">&lt;!-- desugars to: --&gt;</span>
+&lt;<span class="tag">CustomInput</span> :model-value="searchText" @update:model-value="searchText = $event" /&gt;</pre>
+      <pre><span class="c">// inside CustomInput.vue</span>
+const model = defineModel()
+<span class="c">// use model.value directly — reading and writing both sync to the parent</span></pre>
+      <p><code class="inline">defineModel()</code> is sugar (Vue 3.4+) over declaring a <code class="inline">modelValue</code> prop plus an <code class="inline">update:modelValue</code> emit by hand. Named models — <code class="inline">v-model:title="..."</code> — and modifiers on a component <code class="inline">v-model</code> both work the same way, just with the corresponding name substituted for <code class="inline">modelValue</code>/<code class="inline">model-value</code>.</p>
+    </section>
+
+    <section class="topic" id="s20">
+      <div class="num">20</div>
+      <h2>Fallthrough attributes</h2>
+      <div class="meta">Attributes the parent passes that aren't declared props</div>
+      <p>Any attribute or listener passed to a component that isn't a declared prop or emit "falls through" automatically onto the component's single root element — e.g. a plain <code class="inline">class</code> or <code class="inline">id</code> passed to a wrapper component lands on its root <code class="inline">&lt;div&gt;</code> without any explicit wiring.</p>
+      <pre>export default {
+  inheritAttrs: false <span class="c">// opt out of automatic fallthrough</span>
+}</pre>
+      <pre>&lt;<span class="tag">div</span> class="wrapper"&gt;
+  &lt;<span class="tag">input</span> v-bind="$attrs" /&gt;  <span class="c">&lt;!-- forward them explicitly, e.g. onto an inner element --&gt;</span>
+&lt;/<span class="tag">div</span>&gt;</pre>
+      <div class="callout">A component with <strong>multiple root nodes</strong> does not auto-inherit attributes — Vue can't guess which root they belong to, so <code class="inline">$attrs</code> must be bound explicitly somewhere in that case.</div>
+    </section>
+
+    <section class="topic" id="s21">
+      <div class="num">21</div>
+      <h2>Slots</h2>
+      <div class="meta">Named slots, scoped slots, and fallback content</div>
+      <pre><span class="c">&lt;!-- child: FancyList.vue --&gt;</span>
+&lt;<span class="tag">slot</span> name="header"&gt;&lt;/<span class="tag">slot</span>&gt;
+&lt;<span class="tag">slot</span> v-for="item in items" :item="item"&gt;{{ item.text }}&lt;/<span class="tag">slot</span>&gt;
+
+<span class="c">&lt;!-- parent --&gt;</span>
+&lt;<span class="tag">FancyList</span>&gt;
+  &lt;<span class="tag">template</span> #header&gt;&lt;<span class="tag">h2</span>&gt;Results&lt;/<span class="tag">h2</span>&gt;&lt;/<span class="tag">template</span>&gt;
+  &lt;<span class="tag">template</span> #default="{ item }"&gt;
+    &lt;<span class="tag">strong</span>&gt;{{ item.text }}&lt;/<span class="tag">strong</span>&gt;
+  &lt;/<span class="tag">template</span>&gt;
+&lt;/<span class="tag">FancyList</span>&gt;</pre>
+      <p><strong>Named slots</strong> (<code class="inline">name="header"</code>, filled with <code class="inline">#header</code>) let a component expose several distinct content areas. <strong>Scoped slots</strong> pass data from child to parent through the slot itself — bindings on <code class="inline">&lt;slot&gt;</code> become the object destructured in <code class="inline">#default="{ item }"</code> — the one case where data flows slot-content-ward from child to parent.</p>
+    </section>
+
+    <section class="topic" id="s22">
+      <div class="num">22</div>
+      <h2>Provide / inject</h2>
+      <div class="meta">Skipping prop drilling through deep trees</div>
+      <pre><span class="c">// ancestor</span>
+import { provide, ref } from 'vue'
+const location = ref('North Pole')
+provide('location', location) <span class="c">// pass a ref to keep it reactive</span>
+
+<span class="c">// any descendant, any number of levels down</span>
+import { inject } from 'vue'
+const location = inject('location', 'The Universe' <span class="c">/* default */</span>)</pre>
+      <p>Props work well for one or two levels; beyond that, threading a value through every intermediate component ("prop drilling") gets unwieldy. <code class="inline">provide</code>/<code class="inline">inject</code> lets an ancestor make a value available to <em>any</em> descendant directly. Provide a <code class="inline">ref</code> (not a raw value) to keep the link reactive, and prefer <strong>Symbol keys</strong> over plain strings in larger apps to avoid key collisions between unrelated features.</p>
+    </section>
+
+    <section class="topic" id="s23">
+      <div class="num">23</div>
+      <h2>Async components</h2>
+      <div class="meta">Code-splitting a component behind a dynamic import</div>
+      <pre>import { defineAsyncComponent } from 'vue'
+
+const AsyncComp = defineAsyncComponent(() => import('./MyComponent.vue'))
+
+<span class="c">// with loading/error states and delay/timeout tuning</span>
+const AsyncCompWithOptions = defineAsyncComponent({
+  loader: () => import('./MyComponent.vue'),
+  loadingComponent: LoadingSpinner,
+  errorComponent: ErrorDisplay,
+  delay: 200,
+  timeout: 3000
+})</pre>
+      <p><code class="inline">defineAsyncComponent</code> wraps a dynamic <code class="inline">import()</code> so a bundler (Vite, webpack) splits that component into its own chunk, loaded only when it's actually rendered — standard practice for rarely-visited routes or heavy components (charts, editors) that shouldn't bloat the initial bundle.</p>
+    </section>
+
+    <div class="divider-label">Reusability</div>
+
+    <section class="topic" id="s24">
+      <div class="num">24</div>
+      <h2>Composables</h2>
+      <div class="meta">Extracting and reusing stateful logic</div>
+      <pre><span class="c">// useMouse.js</span>
+import { ref, onMounted, onUnmounted } from 'vue'
+
+export function useMouse() {
+  const x = ref(0), y = ref(0)
+  function update(event) { x.value = event.pageX; y.value = event.pageY }
+  onMounted(() => window.addEventListener('mousemove', update))
+  onUnmounted(() => window.removeEventListener('mousemove', update))
+  return { x, y }
+}
+
+<span class="c">// in a component</span>
+const { x, y } = useMouse()</pre>
+      <p>A <strong>composable</strong> is a plain function that uses Composition API primitives to encapsulate and reuse stateful logic — the Composition API's answer to what mixins tried (and largely failed) to solve, because a composable's return value is explicit rather than merged in behind the scenes. By convention, a composable is named <code class="inline">useXxx</code> and any reactive input it takes should be a <code class="inline">ref</code>, not a plain value, so it keeps reacting to later changes.</p>
+    </section>
+
+    <section class="topic" id="s25">
+      <div class="num">25</div>
+      <h2>Custom directives</h2>
+      <div class="meta">Low-level, imperative DOM access as a directive</div>
+      <pre>const vFocus = {
+  mounted: (el) => el.focus()
+}
+
+<span class="c">// registered locally in &lt;script setup&gt;, used as v-focus</span></pre>
+      <pre>app.directive('highlight', {
+  mounted(el, binding) {
+    el.style.background = binding.value
+  },
+  updated(el, binding) {
+    el.style.background = binding.value
+  }
+})</pre>
+      <p>A custom directive is a set of lifecycle hooks (<code class="inline">mounted</code>, <code class="inline">updated</code>, <code class="inline">unmounted</code>, ...) mirroring the component lifecycle, given direct element access. Reach for one only for low-level DOM work that has no clean declarative equivalent (autofocus, a tooltip library integration, a click-outside handler) — most UI logic belongs in a component or composable instead.</p>
+    </section>
+
+    <section class="topic" id="s26">
+      <div class="num">26</div>
+      <h2>Plugins</h2>
+      <div class="meta">App-wide functionality behind <code class="inline">app.use()</code></div>
+      <pre>const myPlugin = {
+  install(app, options) {
+    app.config.globalProperties.$translate = (key) => key
+    app.component('MyGlobalComponent', MyGlobalComponent)
+    app.directive('my-directive', { <span class="c">/* ... */</span> })
+    app.provide('some-value', 42)
+  }
+}
+
+app.use(myPlugin, { <span class="c">/* options */</span> })</pre>
+      <p>A plugin is an object with an <code class="inline">install(app, options)</code> function (or just that function directly). It's the standard packaging shape for anything that needs to register app-wide — a router, a state-management library, a i18n layer, or a set of globally-available components and directives.</p>
+    </section>
+
+    <div class="divider-label">Built-in components</div>
+
+    <section class="topic" id="s27">
+      <div class="num">27</div>
+      <h2>Transition</h2>
+      <div class="meta">Animating a single element's enter/leave</div>
+      <pre>&lt;<span class="tag">Transition</span> name="fade"&gt;
+  &lt;<span class="tag">p</span> v-if="show"&gt;hello&lt;/<span class="tag">p</span>&gt;
+&lt;/<span class="tag">Transition</span>&gt;</pre>
+      <pre>.fade-enter-active, .fade-leave-active { transition: opacity 0.3s ease; }
+.fade-enter-from, .fade-leave-to { opacity: 0; }</pre>
+      <p>Wrapping a single conditionally-rendered element (<code class="inline">v-if</code>/<code class="inline">v-show</code>) in <code class="inline">&lt;Transition&gt;</code> auto-applies a set of CSS classes at each phase of enter/leave (<code class="inline">*-enter-from</code>, <code class="inline">*-enter-active</code>, <code class="inline">*-enter-to</code>, and the mirrored <code class="inline">*-leave-*</code> trio), which you style with a normal CSS transition or animation — no animation library required for the common case.</p>
+    </section>
+
+    <section class="topic" id="s28">
+      <div class="num">28</div>
+      <h2>TransitionGroup</h2>
+      <div class="meta">Animating a list — including reordering</div>
+      <pre>&lt;<span class="tag">TransitionGroup</span> name="list" tag="ul"&gt;
+  &lt;<span class="tag">li</span> v-for="item in items" :key="item.id"&gt;{{ item.text }}&lt;/<span class="tag">li</span>&gt;
+&lt;/<span class="tag">TransitionGroup</span>&gt;</pre>
+      <p>Unlike <code class="inline">&lt;Transition&gt;</code>, this renders an actual wrapper element (<code class="inline">tag="ul"</code>) and can animate multiple items at once — including a <code class="inline">v-move</code> class applied during reordering, powered by the FLIP technique, so items sliding to a new position animate smoothly rather than jumping.</p>
+    </section>
+
+    <section class="topic" id="s29">
+      <div class="num">29</div>
+      <h2>KeepAlive</h2>
+      <div class="meta">Caching inactive component instances</div>
+      <pre>&lt;<span class="tag">KeepAlive</span> :include="['TabA', 'TabB']" :max="10"&gt;
+  &lt;<span class="tag">component</span> :is="activeTab" /&gt;
+&lt;/<span class="tag">KeepAlive</span>&gt;</pre>
+      <p>Wrapping a dynamic component in <code class="inline">&lt;KeepAlive&gt;</code> keeps its instance (and state — scroll position, form input, fetched data) alive in memory when it's switched away from, instead of destroying it. <code class="inline">include</code>/<code class="inline">exclude</code> filter which named components get cached; <code class="inline">max</code> caps how many instances stay resident (LRU eviction beyond that). Cached components get <code class="inline">activated</code>/<code class="inline">deactivated</code> hooks instead of a second mount/unmount cycle.</p>
+    </section>
+
+    <section class="topic" id="s30">
+      <div class="num">30</div>
+      <h2>Teleport</h2>
+      <div class="meta">Rendering outside the component's DOM position</div>
+      <pre>&lt;<span class="tag">Teleport</span> to="body"&gt;
+  &lt;<span class="tag">div</span> class="modal"&gt;...&lt;/<span class="tag">div</span>&gt;
+&lt;/<span class="tag">Teleport</span>&gt;</pre>
+      <p>A component's template usually renders exactly where it sits in the tree — a problem for a modal or tooltip nested deep inside a positioned/overflow-hidden ancestor, where CSS <code class="inline">z-index</code>/<code class="inline">overflow</code> fights get ugly. <code class="inline">&lt;Teleport&gt;</code> moves the rendered DOM to a different location in the document (commonly straight under <code class="inline">&lt;body&gt;</code>) while keeping it logically part of the same component — it still has access to the parent's data and still participates in the parent's event flow.</p>
+    </section>
+
+    <section class="topic" id="s31">
+      <div class="num">31</div>
+      <h2>Suspense</h2>
+      <div class="meta">Coordinating nested async dependencies (experimental)</div>
+      <pre>&lt;<span class="tag">Suspense</span>&gt;
+  &lt;<span class="tag">template</span> #default&gt;
+    &lt;<span class="tag">AsyncComponentWithAwaitInSetup</span> /&gt;
+  &lt;/<span class="tag">template</span>&gt;
+  &lt;<span class="tag">template</span> #fallback&gt;
+    Loading...
+  &lt;/<span class="tag">template</span>&gt;
+&lt;/<span class="tag">Suspense</span>&gt;</pre>
+      <p><code class="inline">&lt;Suspense&gt;</code> shows fallback content while one or more descendant components with an async <code class="inline">setup()</code> (e.g. <code class="inline">await</code>ing a fetch before rendering) are still resolving, then swaps to the real content once every one of them settles.</p>
+      <div class="callout warn">The guide marks <code class="inline">&lt;Suspense&gt;</code> as an experimental feature — its API isn't fully stable and may still change between minor versions. Confirm current status against the docs before depending on it in production.</div>
+    </section>
+
+    <div class="divider-label">Scaling up</div>
+
+    <section class="topic" id="s32">
+      <div class="num">32</div>
+      <h2>Single-file components</h2>
+      <div class="meta">The anatomy of a <code class="inline">.vue</code> file</div>
+      <pre>&lt;<span class="tag">template</span>&gt;
+  &lt;<span class="tag">p</span> class="greeting"&gt;{{ greeting }}&lt;/<span class="tag">p</span>&gt;
+&lt;/<span class="tag">template</span>&gt;
+
+&lt;<span class="tag">script</span> setup&gt;
+import { ref } from 'vue'
+const greeting = ref('Hello World!')
+&lt;/<span class="tag">script</span>&gt;
+
+&lt;<span class="tag">style</span> scoped&gt;
+.greeting { color: red; font-weight: bold; }
+&lt;/<span class="tag">style</span>&gt;</pre>
+      <p>An SFC (<code class="inline">.vue</code> file) colocates a component's template, logic, and styling in one file, compiled by build tooling into a plain JavaScript module. <code class="inline">&lt;style scoped&gt;</code> auto-generates unique attributes so those rules apply only within this component, without leaking globally.</p>
+    </section>
+
+    <section class="topic" id="s33">
+      <div class="num">33</div>
+      <h2>Tooling</h2>
+      <div class="meta">Vite, the devtools extension, and TypeScript support</div>
+      <ul>
+        <li><strong>Vite</strong> — the official, recommended build tool: fast dev-server cold starts via native ES modules, and a Rollup-based production build. <code class="inline">create-vue</code> scaffolds a Vite project by default.</li>
+        <li><strong>Vue Devtools</strong> — a browser extension for inspecting the live component tree, reactive state, emitted events, and (if present) router/Pinia state.</li>
+        <li><strong>IDE support</strong> — the <strong>Vue - Official</strong> VS Code extension (formerly Volar) provides <code class="inline">.vue</code> syntax highlighting, TypeScript type-checking inside SFCs, and template auto-completion.</li>
+        <li><strong>TypeScript</strong> — supported throughout; <code class="inline">defineProps&lt;{ msg: string }&gt;()</code> and <code class="inline">defineEmits&lt;{ change: [id: number] }&gt;()</code> give fully typed props/emits without a runtime schema object.</li>
+      </ul>
+    </section>
+
+    <section class="topic" id="s34">
+      <div class="num">34</div>
+      <h2>Routing</h2>
+      <div class="meta">Vue Router — the official client-side router</div>
+      <pre>import { createRouter, createWebHistory } from 'vue-router'
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes: [
+    { path: '/', component: Home },
+    { path: '/users/:id', component: UserDetail, props: true }
+  ]
+})
+
+app.use(router)</pre>
+      <pre>&lt;<span class="tag">RouterLink</span> to="/about"&gt;About&lt;/<span class="tag">RouterLink</span>&gt;
+&lt;<span class="tag">RouterView</span> /&gt;</pre>
+      <p>For a single-page application, Vue Router maps URL paths to components, handles the browser back/forward history, and supports nested routes, route params, guards (<code class="inline">beforeEnter</code>, <code class="inline">router.beforeEach</code>), and lazy-loaded route components via dynamic <code class="inline">import()</code>.</p>
+    </section>
+
+    <section class="topic" id="s35">
+      <div class="num">35</div>
+      <h2>State management</h2>
+      <div class="meta">From local state to Pinia</div>
+      <pre>import { defineStore } from 'pinia'
+
+export const useCounterStore = defineStore('counter', {
+  state: () => ({ count: 0 }),
+  getters: { double: (state) => state.count * 2 },
+  actions: { increment() { this.count++ } }
+})
+
+<span class="c">// in a component</span>
+const counter = useCounterStore()
+counter.increment()</pre>
+      <p><strong>Pinia</strong> is the official state-management library, replacing the earlier Vuex. Reach for a shared store when several unrelated components need the same state and <code class="inline">provide</code>/<code class="inline">inject</code> or prop-passing becomes awkward — but plain reactive state in a composable is often enough for small to mid-sized apps, and the guide explicitly recommends not reaching for a store library by default.</p>
+    </section>
+
+    <section class="topic" id="s36">
+      <div class="num">36</div>
+      <h2>Testing</h2>
+      <div class="meta">Unit, component, and end-to-end layers</div>
+      <table class="cheat">
+        <tr><th>Layer</th><th>Typical tool</th><th>Tests</th></tr>
+        <tr><td>Unit</td><td>Vitest</td><td>Composables and utility functions in isolation</td></tr>
+        <tr><td>Component</td><td>Vue Test Utils (+ Vitest)</td><td>A single component's rendered output and behavior, mounted in isolation</td></tr>
+        <tr><td>End-to-end</td><td>Cypress / Playwright</td><td>Full user flows in a real browser against a running build</td></tr>
+      </table>
+      <p><strong>Vitest</strong> (also Vite-powered, so it shares config and transforms with the app) is the recommended unit/component test runner; <strong>Vue Test Utils</strong> is the official low-level component-mounting library it typically pairs with.</p>
+    </section>
+
+    <section class="topic" id="s37">
+      <div class="num">37</div>
+      <h2>Server-side rendering</h2>
+      <div class="meta">SSR concepts, and reaching for Nuxt</div>
+      <p>Server-side rendering executes the app on the server per-request to produce full HTML up front — better initial paint and SEO than a purely client-rendered SPA, since crawlers and slow connections see real content immediately. The client then "hydrates" that HTML, attaching interactivity without re-rendering from scratch.</p>
+      <div class="callout"><strong>Nuxt</strong> is the standard way most teams reach SSR with Vue in practice — it wraps Vue's lower-level SSR API with routing, data-fetching conventions, and deployment tooling, the way the guide frames "build SSR yourself" as the manual path and Nuxt as the recommended one for real projects.</div>
+    </section>
+
+    <div class="divider-label">Best practices</div>
+
+    <section class="topic" id="s38">
+      <div class="num">38</div>
+      <h2>Production deployment</h2>
+      <div class="meta">Building for production correctly</div>
+      <pre>npm run build   <span class="c"># emits a minified, production-mode bundle to dist/</span></pre>
+      <p>A production build strips development-only warnings, minifies output, and disables the Options/Composition API's dev-mode reactivity warnings — always deploy the built bundle, never the dev server. If the app is only partially interactive on an otherwise static/server-rendered page, only load Vue where it's actually needed rather than shipping the full framework for a widget or two.</p>
+    </section>
+
+    <section class="topic" id="s39">
+      <div class="num">39</div>
+      <h2>Performance</h2>
+      <div class="meta"><code class="inline">v-once</code>, <code class="inline">v-memo</code>, and general bundle hygiene</div>
+      <pre>&lt;<span class="tag">div</span> v-once&gt;{{ expensiveStaticContent }}&lt;/<span class="tag">div</span>&gt;
+
+&lt;<span class="tag">div</span> v-memo="[valueA, valueB]"&gt;
+  <span class="c">&lt;!-- skips re-render unless valueA or valueB actually changed --&gt;</span>
+&lt;/<span class="tag">div</span>&gt;</pre>
+      <ul>
+        <li><strong><code class="inline">v-once</code></strong> — renders an element/component tree once and skips it on every future update; for content that genuinely never changes after the first render.</li>
+        <li><strong><code class="inline">v-memo</code></strong> — memoizes a template subtree against a dependency array, useful for very large <code class="inline">v-for</code> lists where most rows don't change between renders.</li>
+        <li><strong>Virtualize long lists</strong> (e.g. with <code class="inline">vue-virtual-scroller</code>) rather than rendering thousands of DOM nodes at once.</li>
+        <li><strong>Lazy-load routes and heavy components</strong> via <code class="inline">defineAsyncComponent</code> / route-level dynamic imports to keep the initial bundle small.</li>
+      </ul>
+    </section>
+
+    <section class="topic" id="s40">
+      <div class="num">40</div>
+      <h2>Accessibility</h2>
+      <div class="meta">Semantic HTML, focus, and ARIA basics</div>
+      <ul>
+        <li>Prefer semantic elements (<code class="inline">&lt;button&gt;</code>, <code class="inline">&lt;nav&gt;</code>, <code class="inline">&lt;label&gt;</code>) over a generic <code class="inline">&lt;div&gt;</code> with a click handler — screen readers and keyboard navigation rely on native semantics.</li>
+        <li>Manage focus explicitly around route changes and modals — e.g. move focus into a <code class="inline">&lt;Teleport&gt;</code>-rendered modal on open, and back to the trigger element on close.</li>
+        <li>Add ARIA attributes only to fill a real gap semantic HTML can't cover; an ARIA role on the wrong element is often worse than none at all.</li>
+        <li>Respect <code class="inline">prefers-reduced-motion</code> in <code class="inline">&lt;Transition&gt;</code>/<code class="inline">&lt;TransitionGroup&gt;</code> CSS for users sensitive to motion.</li>
+      </ul>
+    </section>
+
+    <section class="topic" id="s41">
+      <div class="num">41</div>
+      <h2>Security</h2>
+      <div class="meta">Where Vue apps are actually exposed to XSS</div>
+      <div class="callout warn"><strong><code class="inline">v-html</code> renders raw, unescaped HTML.</strong> Passing any user-controllable string to it is a direct XSS vector — only ever use it with content you trust completely (e.g. sanitized CMS output, not raw user input).</div>
+      <p>Text interpolation (<code class="inline">{{ }}</code>) is always escaped and safe by default — the risk is specifically <code class="inline">v-html</code>, dynamically constructed <code class="inline">:href</code>/<code class="inline">:src</code> values that could resolve to a <code class="inline">javascript:</code> URL, and any templates compiled at runtime from untrusted, user-supplied strings (avoid runtime template compilation from user input entirely). Third-party components and plugins execute with the same trust level as your own code — audit dependencies the same way you would any other code with DOM access.</p>
+    </section>
+
+    <section class="topic" id="cheatsheet">
+      <div class="num">✓</div>
+      <h2>Quick reference cheatsheet</h2>
+      <div class="meta">Every directive and API across the tutorial and guide, one line each</div>
+      <div class="cheat-wrap">
+      <table class="cheat">
+        <tr><th>Concept</th><th>Syntax</th><th>Purpose</th></tr>
+        <tr><td>Text interpolation</td><td><code class="inline">{{ value }}</code></td><td>Reactive text content (auto-escaped)</td></tr>
+        <tr><td>Raw HTML</td><td><code class="inline">v-html</code></td><td>Unescaped HTML — trusted content only</td></tr>
+        <tr><td>Attribute binding</td><td><code class="inline">v-bind</code> / <code class="inline">:</code></td><td>Bind an attribute to state</td></tr>
+        <tr><td>Event handling</td><td><code class="inline">v-on</code> / <code class="inline">@</code></td><td>Attach a DOM event listener</td></tr>
+        <tr><td>Two-way binding</td><td><code class="inline">v-model</code></td><td>Sync a form input (or component) with state</td></tr>
+        <tr><td>Conditional render</td><td><code class="inline">v-if</code> / <code class="inline">v-else-if</code> / <code class="inline">v-else</code> / <code class="inline">v-show</code></td><td>Toggle elements on a condition</td></tr>
+        <tr><td>List rendering</td><td><code class="inline">v-for</code> + <code class="inline">:key</code></td><td>Render a list from an array, object, or range</td></tr>
+        <tr><td>Skip re-render</td><td><code class="inline">v-once</code> / <code class="inline">v-memo</code></td><td>Render once, or memoize against a dependency list</td></tr>
+        <tr><td>Reactive state</td><td><code class="inline">ref()</code> / <code class="inline">reactive()</code></td><td>Wrap a value or object so changes trigger updates</td></tr>
+        <tr><td>Derived state</td><td><code class="inline">computed()</code> / <code class="inline">computed: {}</code></td><td>Cached, reactive derived values</td></tr>
+        <tr><td>Side effects</td><td><code class="inline">watch()</code> / <code class="inline">watchEffect()</code></td><td>React to (or auto-track) a state change</td></tr>
+        <tr><td>Class / style binding</td><td><code class="inline">:class</code> / <code class="inline">:style</code></td><td>Bind dynamic objects or arrays</td></tr>
+        <tr><td>DOM access</td><td><code class="inline">ref</code> attribute + <code class="inline">onMounted</code>/<code class="inline">mounted()</code></td><td>Direct reference to a DOM element or child component</td></tr>
+        <tr><td>Lifecycle</td><td><code class="inline">onMounted</code>, <code class="inline">onUpdated</code>, <code class="inline">onUnmounted</code>, ...</td><td>Hook into a component's life stages</td></tr>
+        <tr><td>Reusable UI</td><td>Components (<code class="inline">.vue</code> SFCs)</td><td>Compose the UI tree</td></tr>
+        <tr><td>Parent → child</td><td><code class="inline">defineProps()</code> / <code class="inline">props: {}</code></td><td>Pass data down</td></tr>
+        <tr><td>Child → parent</td><td><code class="inline">defineEmits()</code> / <code class="inline">$emit</code></td><td>Notify the parent of an event</td></tr>
+        <tr><td>Component v-model</td><td><code class="inline">defineModel()</code></td><td>Two-way binding on a custom component</td></tr>
+        <tr><td>Content projection</td><td><code class="inline">&lt;slot&gt;</code> (named / scoped)</td><td>Pass template fragments — and data back — into/out of a child</td></tr>
+        <tr><td>Deep-tree data</td><td><code class="inline">provide()</code> / <code class="inline">inject()</code></td><td>Skip prop drilling across many levels</td></tr>
+        <tr><td>Logic reuse</td><td>Composables (<code class="inline">useXxx()</code>)</td><td>Extract and share stateful logic</td></tr>
+        <tr><td>Low-level DOM</td><td>Custom directives</td><td>Imperative element hooks (<code class="inline">mounted</code>, <code class="inline">updated</code>, ...)</td></tr>
+        <tr><td>App-wide features</td><td>Plugins (<code class="inline">app.use()</code>)</td><td>Router, store, i18n, and similar integrations</td></tr>
+        <tr><td>Animation</td><td><code class="inline">&lt;Transition&gt;</code> / <code class="inline">&lt;TransitionGroup&gt;</code></td><td>Enter/leave and list-reorder animation</td></tr>
+        <tr><td>Instance caching</td><td><code class="inline">&lt;KeepAlive&gt;</code></td><td>Preserve state across dynamic component switches</td></tr>
+        <tr><td>DOM relocation</td><td><code class="inline">&lt;Teleport&gt;</code></td><td>Render a subtree elsewhere in the DOM (modals, tooltips)</td></tr>
+        <tr><td>Async coordination</td><td><code class="inline">&lt;Suspense&gt;</code></td><td>Fallback content while nested async setup resolves</td></tr>
+        <tr><td>Code splitting</td><td><code class="inline">defineAsyncComponent()</code></td><td>Load a component's chunk on demand</td></tr>
+        <tr><td>Routing</td><td>Vue Router</td><td>URL ↔ component mapping for SPAs</td></tr>
+        <tr><td>Shared state</td><td>Pinia</td><td>App-wide store with actions/getters</td></tr>
+        <tr><td>Testing</td><td>Vitest + Vue Test Utils</td><td>Unit and component-level tests</td></tr>
+        <tr><td>SSR</td><td>Nuxt (or Vue's SSR API directly)</td><td>Server-rendered HTML + hydration</td></tr>
+      </table>
+      </div>
+    </section>
+
+    <footer class="end">
+      Notes compiled from the official Vue.js Guide (vuejs.org/guide) and the interactive tutorial (vuejs.org/tutorial), expanded with standard, runnable Options API / Composition API code for context. For exhaustive API signatures and edge cases, cross-check the guide page for that topic directly.
+    </footer>
+  </main>
+</div>
