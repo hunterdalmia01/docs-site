@@ -97,19 +97,25 @@ function stretchToFill() {
   const wrapper = contentRoot.value?.firstElementChild
   if (!wrapper) return
 
+  // Read the ORIGINAL (still-capped) grid track sizes before we touch
+  // width/max-width, so a fixed-px sidebar/TOC column is captured as it
+  // was authored, not as some already-stretched intermediate value.
+  const originalCols = getComputedStyle(wrapper).display.includes('grid')
+    ? getComputedStyle(wrapper).gridTemplateColumns.trim().split(/\s+/)
+    : null
+
   wrapper.style.setProperty('max-width', 'none', 'important')
   wrapper.style.setProperty('width', '100%', 'important')
   wrapper.style.setProperty('margin-left', '0', 'important')
   wrapper.style.setProperty('margin-right', '0', 'important')
   wrapper.style.setProperty('box-sizing', 'border-box', 'important')
 
-  const cs = getComputedStyle(wrapper)
-  if (cs.display.includes('grid')) {
-    const cols = cs.gridTemplateColumns.trim().split(/\s+/)
-    if (cols.length >= 2) {
-      const stretched = [...cols.slice(0, -1), 'minmax(0,1fr)'].join(' ')
-      wrapper.style.setProperty('grid-template-columns', stretched, 'important')
-    }
+  if (originalCols && originalCols.length >= 2) {
+    // Keep every column except the last one exactly as authored (that's
+    // the fixed sidebar/TOC rail); let only the last - the reading column -
+    // grow to fill whatever width is now available.
+    const stretched = [...originalCols.slice(0, -1), 'minmax(0,1fr)'].join(' ')
+    wrapper.style.setProperty('grid-template-columns', stretched, 'important')
   }
 }
 
@@ -117,6 +123,9 @@ async function renderNote() {
   applyNote(note.value?.html)
   await nextTick()
   stretchToFill()
+  // Web fonts loading in can reflow text and shift intrinsic sizes; run it
+  // again once fonts settle so the stretch isn't undone by a later reflow.
+  document.fonts?.ready?.then(stretchToFill).catch(() => {})
   contentRoot.value?.querySelectorAll('pre code').forEach((block) => {
     hljs.highlightElement(block)
   })
