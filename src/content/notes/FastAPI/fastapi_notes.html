@@ -1,0 +1,844 @@
+<title>FastAPI Field Notes</title>
+<style>
+  :root{
+    --bg:#f5f7f6;
+    --surface:#ffffff;
+    --surface-2:#eef2f0;
+    --text:#182420;
+    --text-dim:#55655e;
+    --accent:#05877a;
+    --accent-ink:#04372f;
+    --border:#dde4e0;
+    --code-bg:#0f2622;
+    --code-text:#d9ede8;
+    --code-key:#6fe0c9;
+    --danger:#b5502c;
+    --radius:10px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0c1412;
+      --surface:#121c19;
+      --surface-2:#17231f;
+      --text:#e6ece9;
+      --text-dim:#93a49c;
+      --accent:#33d9c0;
+      --accent-ink:#bdf5e9;
+      --border:#233330;
+      --code-bg:#08110f;
+      --code-text:#cfe9e1;
+      --code-key:#5be8cd;
+      --danger:#e08a67;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0c1412;
+    --surface:#121c19;
+    --surface-2:#17231f;
+    --text:#e6ece9;
+    --text-dim:#93a49c;
+    --accent:#33d9c0;
+    --accent-ink:#bdf5e9;
+    --border:#233330;
+    --code-bg:#08110f;
+    --code-text:#cfe9e1;
+    --code-key:#5be8cd;
+    --danger:#e08a67;
+  }
+
+  *{box-sizing:border-box;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+    line-height:1.6;
+    font-size:16px;
+  }
+  h1,h2,h3{
+    font-family:"Newsreader",Georgia,serif;
+    color:var(--text);
+    text-wrap:balance;
+    font-weight:600;
+  }
+  code, pre, .mono{
+    font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+  }
+  a{color:var(--accent);}
+
+  .layout{
+    display:grid;
+    grid-template-columns:260px minmax(0,1fr);
+    gap:0;
+    max-width:1180px;
+    margin:0 auto;
+  }
+  nav.toc{
+    border-right:1px solid var(--border);
+    padding:32px 20px 60px 28px;
+    position:sticky;
+    top:0;
+    align-self:start;
+    max-height:100vh;
+    overflow-y:auto;
+  }
+  nav.toc .eyebrow{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:6px;
+  }
+  nav.toc h2{
+    font-size:19px;
+    margin:0 0 4px;
+  }
+  nav.toc .sub{
+    color:var(--text-dim);
+    font-size:13px;
+    margin-bottom:20px;
+  }
+  nav.toc .group-label{
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    margin:18px 0 6px;
+  }
+  nav.toc ol{
+    list-style:none;
+    margin:0;
+    padding:0;
+    counter-reset:vid;
+  }
+  nav.toc li{
+    counter-increment:vid;
+  }
+  nav.toc a{
+    display:flex;
+    gap:8px;
+    padding:5px 6px;
+    border-radius:6px;
+    text-decoration:none;
+    color:var(--text-dim);
+    font-size:13.5px;
+    line-height:1.35;
+  }
+  nav.toc a::before{
+    content:counter(vid);
+    font-family:"IBM Plex Mono",monospace;
+    font-size:11px;
+    color:var(--accent);
+    flex:0 0 auto;
+    padding-top:1px;
+  }
+  nav.toc a:hover{
+    background:var(--surface-2);
+    color:var(--text);
+  }
+
+  main{
+    padding:48px 56px 120px;
+    min-width:0;
+  }
+  header.hero{
+    margin-bottom:44px;
+    padding-bottom:28px;
+    border-bottom:1px solid var(--border);
+  }
+  header.hero .eyebrow{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:12px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--accent);
+    margin-bottom:14px;
+  }
+  header.hero h1{
+    font-size:40px;
+    margin:0 0 14px;
+    letter-spacing:-.01em;
+  }
+  header.hero p{
+    color:var(--text-dim);
+    max-width:60ch;
+    font-size:16px;
+    margin:0 0 14px;
+  }
+  header.hero .src{
+    font-size:13.5px;
+    color:var(--text-dim);
+  }
+  header.hero .src a{
+    color:var(--text);
+    border-bottom:1px solid var(--border);
+  }
+
+  section.topic{
+    margin-bottom:56px;
+    scroll-margin-top:24px;
+  }
+  section.topic .num{
+    font-family:"IBM Plex Mono",monospace;
+    color:var(--accent);
+    font-size:13px;
+    letter-spacing:.06em;
+  }
+  section.topic h2{
+    font-size:25px;
+    margin:4px 0 4px;
+  }
+  section.topic .meta{
+    color:var(--text-dim);
+    font-size:13px;
+    margin-bottom:16px;
+  }
+  section.topic .meta a{
+    color:var(--text-dim);
+    text-decoration:underline;
+  }
+  section.topic p{
+    max-width:72ch;
+    margin:0 0 14px;
+  }
+  section.topic ul, section.topic ol.steps{
+    max-width:72ch;
+    margin:0 0 16px;
+    padding-left:22px;
+  }
+  section.topic li{
+    margin-bottom:6px;
+  }
+  .callout{
+    max-width:72ch;
+    background:var(--surface-2);
+    border-left:3px solid var(--accent);
+    border-radius:0 8px 8px 0;
+    padding:12px 16px;
+    margin:0 0 16px;
+    font-size:14.5px;
+    color:var(--text-dim);
+  }
+  .callout strong{color:var(--text);}
+  .callout.warn{border-left-color:var(--danger);}
+
+  pre{
+    background:var(--code-bg);
+    color:var(--code-text);
+    border-radius:var(--radius);
+    padding:16px 18px;
+    overflow-x:auto;
+    font-size:13.5px;
+    line-height:1.55;
+    max-width:78ch;
+    margin:0 0 18px;
+    border:1px solid var(--border);
+  }
+  pre .c{color:var(--code-key);}
+
+  code.inline{
+    background:var(--surface-2);
+    border:1px solid var(--border);
+    padding:1px 6px;
+    border-radius:5px;
+    font-size:13.5px;
+  }
+
+  table.cheat{
+    border-collapse:collapse;
+    max-width:78ch;
+    margin:0 0 18px;
+    font-size:14px;
+  }
+  table.cheat th, table.cheat td{
+    border:1px solid var(--border);
+    padding:8px 12px;
+    text-align:left;
+    vertical-align:top;
+  }
+  table.cheat th{
+    background:var(--surface-2);
+    font-family:"IBM Plex Mono",monospace;
+    font-size:12px;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+  }
+
+  .divider-label{
+    font-family:"IBM Plex Mono",monospace;
+    font-size:12px;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--accent);
+    border-top:1px solid var(--border);
+    padding-top:36px;
+    margin:0 0 22px;
+  }
+
+  footer.end{
+    border-top:1px solid var(--border);
+    margin-top:40px;
+    padding-top:24px;
+    color:var(--text-dim);
+    font-size:13.5px;
+    max-width:72ch;
+  }
+  footer.end a{color:var(--text);}
+
+  @media (max-width:860px){
+    .layout{grid-template-columns:1fr;}
+    nav.toc{position:relative;max-height:none;border-right:none;border-bottom:1px solid var(--border);}
+    main{padding:32px 20px 80px;}
+  }
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<div class="layout">
+  <nav class="toc">
+    <div class="eyebrow">Course notes</div>
+    <h2>FastAPI, start to auth</h2>
+    <div class="sub">TechSimPlus Learnings · 26-video playlist</div>
+
+    <div class="group-label">Foundations</div>
+    <ol>
+      <li><a href="#v1">Introduction</a></li>
+      <li><a href="#v2">Project setup</a></li>
+      <li><a href="#v3">First server & GET</a></li>
+      <li><a href="#v4">Path & query params</a></li>
+      <li><a href="#v5">HTTP methods</a></li>
+      <li><a href="#v6">POST/PUT/DELETE + Pydantic</a></li>
+    </ol>
+
+    <div class="group-label">Real project & database</div>
+    <ol start="7">
+      <li><a href="#v7">Folder structure</a></li>
+      <li><a href="#v8">PostgreSQL + SQLAlchemy</a></li>
+      <li><a href="#v9">DB models (ORM)</a></li>
+      <li><a href="#v10">POST → insert</a></li>
+      <li><a href="#v11">GET → fetch list</a></li>
+      <li><a href="#v12">GET by ID</a></li>
+      <li><a href="#v13">Update & delete (CRUD)</a></li>
+      <li><a href="#v14">Production-ready practices</a></li>
+    </ol>
+
+    <div class="group-label">Auth & security</div>
+    <ol start="15">
+      <li><a href="#v15">JWT & security overview</a></li>
+      <li><a href="#v16">Registration + hashing</a></li>
+      <li><a href="#v17">Registration validation</a></li>
+      <li><a href="#v18">Login API (JWT)</a></li>
+      <li><a href="#v19">Token-based auth</a></li>
+      <li><a href="#v20">Protected routes</a></li>
+    </ol>
+
+    <div class="group-label">Relationships & extras</div>
+    <ol start="21">
+      <li><a href="#v21">One-to-many relationships</a></li>
+      <li><a href="#v22">User-owned tasks</a></li>
+      <li><a href="#v23">Sending email</a></li>
+      <li><a href="#v24">Background tasks</a></li>
+    </ol>
+
+    <div class="group-label">Bonus: GenAI</div>
+    <ol start="25">
+      <li><a href="#v25">Deploy an AI agent</a></li>
+      <li><a href="#v26">Full crash course + LangChain</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <header class="hero">
+      <div class="eyebrow">FastAPI Field Notes</div>
+      <h1>FastAPI, from first endpoint to JWT-protected API</h1>
+      <p>A working reference built from the <em>FastAPI Complete Playlist</em> by TechSimPlus Learnings — 26 videos taking you from "what is FastAPI" through Pydantic validation, PostgreSQL with SQLAlchemy, password hashing, JWT auth, table relationships, email, and background tasks. Each section below mirrors one video: the core idea, the pattern, and runnable code.</p>
+      <p class="src">Source playlist: <a href="https://www.youtube.com/playlist?list=PLUhY5ME1VdIumaSa-m5SQ-ztTL8NWY8Gh" target="_blank" rel="noopener">youtube.com/playlist?list=PLUhY5ME1VdIumaSa-m5SQ-ztTL8NWY8Gh</a></p>
+    </header>
+
+    <section class="topic" id="v1">
+      <div class="num">01</div>
+      <h2>Introduction to FastAPI</h2>
+      <div class="meta">#1 · 3:53</div>
+      <p>FastAPI is a modern Python web framework for building APIs, built on top of <strong>Starlette</strong> (the ASGI toolkit that handles routing and async request/response) and <strong>Pydantic</strong> (data validation via Python type hints). Its selling points:</p>
+      <ul>
+        <li><strong>Speed</strong> — one of the fastest Python frameworks, comparable to Node.js/Go, because it's built on ASGI (async) rather than WSGI.</li>
+        <li><strong>Type hints do the work</strong> — function signatures double as validation rules, so request bodies, query params, and responses are checked automatically.</li>
+        <li><strong>Free interactive docs</strong> — Swagger UI (<code class="inline">/docs</code>) and ReDoc (<code class="inline">/redoc</code>) are generated from your code, no extra tooling.</li>
+        <li><strong>Async-native</strong> — <code class="inline">async def</code> endpoints handle high-concurrency I/O (DB calls, external APIs) efficiently.</li>
+      </ul>
+      <div class="callout"><strong>Where it fits:</strong> Flask-like simplicity, Django-REST-like structure for larger apps, but faster and with validation built in rather than bolted on.</div>
+    </section>
+
+    <section class="topic" id="v2">
+      <div class="num">02</div>
+      <h2>Project setup</h2>
+      <div class="meta">#2 · 4:02 — VS Code setup</div>
+      <p>Standard environment bootstrap before writing any route:</p>
+      <pre>python -m venv venv
+<span class="c"># activate</span>
+venv\Scripts\activate        <span class="c"># Windows</span>
+source venv/bin/activate     <span class="c"># macOS / Linux</span>
+
+pip install fastapi uvicorn</pre>
+      <ul>
+        <li><strong>fastapi</strong> — the framework itself.</li>
+        <li><strong>uvicorn</strong> — the ASGI server that actually runs your app (FastAPI doesn't serve HTTP on its own).</li>
+        <li>In VS Code: select the venv's interpreter (bottom-right Python version picker) so imports resolve and linting works.</li>
+      </ul>
+    </section>
+
+    <section class="topic" id="v3">
+      <div class="num">03</div>
+      <h2>First server & GET endpoint</h2>
+      <div class="meta">#3 · 8:10</div>
+      <pre><span class="c"># main.py</span>
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/")
+def read_root():
+    return {"message": "Hello, FastAPI"}</pre>
+      <p>Run it with the reload flag during development so code changes restart the server automatically:</p>
+      <pre>uvicorn main:app --reload</pre>
+      <p><code class="inline">main:app</code> means "in <code class="inline">main.py</code>, use the object named <code class="inline">app</code>". Visit <code class="inline">http://127.0.0.1:8000</code> for the response and <code class="inline">/docs</code> for the auto-generated Swagger UI.</p>
+    </section>
+
+    <section class="topic" id="v4">
+      <div class="num">04</div>
+      <h2>Path parameters & query parameters</h2>
+      <div class="meta">#4 · 26:02</div>
+      <p><strong>Path parameters</strong> are part of the URL and identify a specific resource. <strong>Query parameters</strong> come after <code class="inline">?</code> and are for optional filters, sorting, pagination.</p>
+      <pre><span class="c"># path parameter — type-hinted as int, FastAPI validates & converts it</span>
+@app.get("/items/{item_id}")
+def get_item(item_id: int):
+    return {"item_id": item_id}
+
+<span class="c"># query parameters — plain function args with defaults are query params</span>
+@app.get("/items/")
+def list_items(skip: int = 0, limit: int = 10, q: str | None = None):
+    return {"skip": skip, "limit": limit, "q": q}</pre>
+      <div class="callout warn"><strong>Ordering matters:</strong> a fixed path like <code class="inline">/items/latest</code> must be declared <em>before</em> <code class="inline">/items/{item_id}</code>, or FastAPI will try to parse <code class="inline">"latest"</code> as the <code class="inline">item_id</code> type and fail.</div>
+      <p>Because <code class="inline">item_id: int</code> is enforced automatically, calling <code class="inline">/items/abc</code> returns a <code class="inline">422 Unprocessable Entity</code> with a descriptive error — no manual validation code needed.</p>
+    </section>
+
+    <section class="topic" id="v5">
+      <div class="num">05</div>
+      <h2>HTTP methods: GET, POST, PUT, DELETE</h2>
+      <div class="meta">#5 · 7:33</div>
+      <table class="cheat">
+        <tr><th>Method</th><th>Purpose</th><th>Idempotent?</th></tr>
+        <tr><td>GET</td><td>Read a resource / list resources</td><td>Yes</td></tr>
+        <tr><td>POST</td><td>Create a new resource</td><td>No</td></tr>
+        <tr><td>PUT</td><td>Replace/update a resource fully</td><td>Yes</td></tr>
+        <tr><td>DELETE</td><td>Remove a resource</td><td>Yes</td></tr>
+      </table>
+      <p>Each maps to a decorator: <code class="inline">@app.get</code>, <code class="inline">@app.post</code>, <code class="inline">@app.put</code>, <code class="inline">@app.delete</code>. The method is a contract about intent and safety (can it be retried without side effects?), not just a routing label.</p>
+    </section>
+
+    <section class="topic" id="v6">
+      <div class="num">06</div>
+      <h2>POST, PUT, DELETE + Pydantic validation</h2>
+      <div class="meta">#6 · 38:06</div>
+      <p>Request bodies are defined as <strong>Pydantic models</strong> — a class with typed fields. FastAPI parses incoming JSON into the model, validates every field, and rejects bad input before your function body even runs.</p>
+      <pre>from pydantic import BaseModel
+
+class Item(BaseModel):
+    name: str
+    price: float
+    in_stock: bool = True
+
+@app.post("/items/")
+def create_item(item: Item):
+    return {"created": item}
+
+@app.put("/items/{item_id}")
+def update_item(item_id: int, item: Item):
+    return {"item_id": item_id, "updated": item}
+
+@app.delete("/items/{item_id}")
+def delete_item(item_id: int):
+    return {"deleted": item_id}</pre>
+      <div class="callout">Pydantic turns "validate this input" from imperative <code class="inline">if</code>-checks into a declared shape. Wrong type, missing required field, or extra constraints (via <code class="inline">Field(...)</code>) all produce a clean <code class="inline">422</code> automatically.</div>
+    </section>
+
+    <div class="divider-label">Building a real project</div>
+
+    <section class="topic" id="v7">
+      <div class="num">07</div>
+      <h2>Project setup & folder structure</h2>
+      <div class="meta">#7 · 13:40</div>
+      <p>A single <code class="inline">main.py</code> doesn't scale. The common FastAPI layout separates concerns so routes, DB logic, and schemas don't tangle:</p>
+      <pre>app/
+├── main.py          <span class="c"># creates FastAPI(), includes routers</span>
+├── database.py      <span class="c"># engine, SessionLocal, Base</span>
+├── models.py         <span class="c"># SQLAlchemy ORM models (DB tables)</span>
+├── schemas.py        <span class="c"># Pydantic models (request/response shapes)</span>
+├── routers/
+│   ├── items.py
+│   └── users.py
+└── utils/ (hashing, auth helpers, email, ...)</pre>
+      <p>Key distinction that trips people up: <strong>models.py</strong> describes database tables (SQLAlchemy), <strong>schemas.py</strong> describes the JSON shapes going in/out over HTTP (Pydantic). They often look similar but serve different layers.</p>
+    </section>
+
+    <section class="topic" id="v8">
+      <div class="num">08</div>
+      <h2>Connect PostgreSQL with SQLAlchemy</h2>
+      <div class="meta">#8 · 11:03</div>
+      <pre>pip install sqlalchemy psycopg2-binary</pre>
+      <pre><span class="c"># database.py</span>
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
+
+DATABASE_URL = "postgresql://user:password@localhost:5432/mydb"
+
+engine = create_engine(DATABASE_URL)
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+Base = declarative_base()
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()</pre>
+      <p><code class="inline">get_db</code> is a <strong>dependency</strong> — FastAPI's own DI system. Declaring <code class="inline">db: Session = Depends(get_db)</code> in a route hands it a fresh session per request and guarantees cleanup, even on error.</p>
+    </section>
+
+    <section class="topic" id="v9">
+      <div class="num">09</div>
+      <h2>Database models (SQLAlchemy ORM)</h2>
+      <div class="meta">#9 · 4:48</div>
+      <pre><span class="c"># models.py</span>
+from sqlalchemy import Column, Integer, String, Boolean
+from .database import Base
+
+class Item(Base):
+    __tablename__ = "items"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    price = Column(Integer)
+    in_stock = Column(Boolean, default=True)</pre>
+      <p>Then create the actual tables (typically once, at startup, or via a migration tool like Alembic in production):</p>
+      <pre>Base.metadata.create_all(bind=engine)</pre>
+    </section>
+
+    <section class="topic" id="v10">
+      <div class="num">10</div>
+      <h2>POST endpoint with database — insert data</h2>
+      <div class="meta">#10 · 21:04</div>
+      <pre>from fastapi import Depends
+from sqlalchemy.orm import Session
+
+@app.post("/items/")
+def create_item(item: schemas.ItemCreate, db: Session = Depends(get_db)):
+    db_item = models.Item(**item.dict())
+    db.add(db_item)
+    db.commit()
+    db.refresh(db_item)   <span class="c"># pulls back generated fields, e.g. id</span>
+    return db_item</pre>
+      <p>The flow is always the same for a write: build the ORM object → <code class="inline">add</code> → <code class="inline">commit</code> → <code class="inline">refresh</code> (to get the DB-generated <code class="inline">id</code> back into the Python object before returning it).</p>
+    </section>
+
+    <section class="topic" id="v11">
+      <div class="num">11</div>
+      <h2>GET endpoint with database — fetch data</h2>
+      <div class="meta">#11 · 3:28</div>
+      <pre>@app.get("/items/")
+def list_items(db: Session = Depends(get_db)):
+    return db.query(models.Item).all()</pre>
+      <p>Same <code class="inline">Depends(get_db)</code> pattern; reads just query and return, no commit needed since nothing is being changed.</p>
+    </section>
+
+    <section class="topic" id="v12">
+      <div class="num">12</div>
+      <h2>GET a specific record by ID</h2>
+      <div class="meta">#12 · 11:17</div>
+      <pre>from fastapi import HTTPException
+
+@app.get("/items/{item_id}")
+def get_item(item_id: int, db: Session = Depends(get_db)):
+    item = db.query(models.Item).filter(models.Item.id == item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    return item</pre>
+      <div class="callout">This is the template for "fetch or 404" everywhere in a FastAPI app: query with a filter, check for <code class="inline">None</code>, raise <code class="inline">HTTPException</code> if missing. FastAPI converts that exception straight into the right JSON error response.</div>
+    </section>
+
+    <section class="topic" id="v13">
+      <div class="num">13</div>
+      <h2>Update & delete — complete CRUD</h2>
+      <div class="meta">#13 · 14:18</div>
+      <pre>@app.put("/items/{item_id}")
+def update_item(item_id: int, updated: schemas.ItemCreate, db: Session = Depends(get_db)):
+    item = db.query(models.Item).filter(models.Item.id == item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    for key, value in updated.dict().items():
+        setattr(item, key, value)
+    db.commit()
+    db.refresh(item)
+    return item
+
+@app.delete("/items/{item_id}")
+def delete_item(item_id: int, db: Session = Depends(get_db)):
+    item = db.query(models.Item).filter(models.Item.id == item_id).first()
+    if not item:
+        raise HTTPException(status_code=404, detail="Item not found")
+    db.delete(item)
+    db.commit()
+    return {"message": "deleted"}</pre>
+      <p>With this, the four CRUD verbs (Create / Read / Update / Delete) are all covered end to end against a real database — the shape every resource-based API repeats.</p>
+    </section>
+
+    <section class="topic" id="v14">
+      <div class="num">14</div>
+      <h2>Production-ready practices</h2>
+      <div class="meta">#14 · 15:43</div>
+      <ul>
+        <li><strong>Routers</strong> — split endpoints with <code class="inline">APIRouter()</code> per resource, then <code class="inline">app.include_router(items.router, prefix="/items", tags=["items"])</code> in <code class="inline">main.py</code>.</li>
+        <li><strong>Response models</strong> — declare <code class="inline">response_model=schemas.ItemOut</code> on routes so you never leak internal fields (password hashes, etc.) by accident.</li>
+        <li><strong>Status codes</strong> — set them explicitly: <code class="inline">@app.post(..., status_code=201)</code> for creation, <code class="inline">204</code> for delete-with-no-body.</li>
+        <li><strong>Environment config</strong> — pull secrets and the DB URL from environment variables (e.g. via <code class="inline">python-dotenv</code> or Pydantic's <code class="inline">BaseSettings</code>), never hardcode them.</li>
+        <li><strong>Consistent error handling</strong> — centralize common checks (get-or-404) into small helper functions instead of repeating them per route.</li>
+      </ul>
+    </section>
+
+    <div class="divider-label">Authentication & security</div>
+
+    <section class="topic" id="v15">
+      <div class="num">15</div>
+      <h2>Authentication & authorization — JWT & security overview</h2>
+      <div class="meta">#15 · 8:18</div>
+      <p>Two different questions an API has to answer: <strong>authentication</strong> ("who are you?") and <strong>authorization</strong> ("are you allowed to do this?"). The standard modern pattern is:</p>
+      <ol class="steps">
+        <li>User registers → password is <strong>hashed</strong>, never stored in plain text.</li>
+        <li>User logs in with credentials → server verifies the hash → issues a <strong>JWT</strong> (JSON Web Token).</li>
+        <li>Client sends that JWT on every subsequent request (<code class="inline">Authorization: Bearer &lt;token&gt;</code>).</li>
+        <li>Protected routes decode/verify the token via a dependency instead of re-checking a password each time.</li>
+      </ol>
+      <p>Libraries used across the playlist: <code class="inline">passlib[bcrypt]</code> for hashing, <code class="inline">python-jose</code> (or <code class="inline">pyjwt</code>) for encoding/decoding JWTs.</p>
+    </section>
+
+    <section class="topic" id="v16">
+      <div class="num">16</div>
+      <h2>User registration — password hashing</h2>
+      <div class="meta">#16 · 15:19</div>
+      <pre>pip install passlib[bcrypt]</pre>
+      <pre>from passlib.context import CryptContext
+
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+def hash_password(password: str) -> str:
+    return pwd_context.hash(password)
+
+def verify_password(plain: str, hashed: str) -> bool:
+    return pwd_context.verify(plain, hashed)
+
+@app.post("/register")
+def register(user: schemas.UserCreate, db: Session = Depends(get_db)):
+    db_user = models.User(
+        email=user.email,
+        hashed_password=hash_password(user.password),
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user</pre>
+      <div class="callout warn"><strong>Never store raw passwords</strong> — bcrypt hashing is one-way and salted, so even a DB breach doesn't expose usable credentials.</div>
+    </section>
+
+    <section class="topic" id="v17">
+      <div class="num">17</div>
+      <h2>Registration part 2 — validation & error handling</h2>
+      <div class="meta">#17 · 10:35</div>
+      <ul>
+        <li>Use Pydantic's <code class="inline">EmailStr</code> (via the <code class="inline">email-validator</code> package) to validate email format at the schema level.</li>
+        <li>Add a <code class="inline">min_length</code> constraint on passwords with <code class="inline">Field(min_length=8)</code>.</li>
+        <li>Check for duplicate accounts before insert: query by email first, and raise <code class="inline">HTTPException(400, "Email already registered")</code> if found — catching the DB's unique-constraint error is a fallback, not the primary check.</li>
+      </ul>
+      <pre>class UserCreate(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8)</pre>
+    </section>
+
+    <section class="topic" id="v18">
+      <div class="num">18</div>
+      <h2>Login API — JWT tokens</h2>
+      <div class="meta">#18 · 16:21</div>
+      <pre>from jose import jwt
+from datetime import datetime, timedelta
+
+SECRET_KEY = "change-me"     <span class="c"># load from env in real apps</span>
+ALGORITHM = "HS256"
+
+def create_access_token(data: dict, expires_minutes: int = 30):
+    to_encode = data.copy()
+    to_encode["exp"] = datetime.utcnow() + timedelta(minutes=expires_minutes)
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+@app.post("/login")
+def login(form: schemas.LoginRequest, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.email == form.email).first()
+    if not user or not verify_password(form.password, user.hashed_password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    token = create_access_token({"sub": user.email})
+    return {"access_token": token, "token_type": "bearer"}</pre>
+      <p>The token's payload (<code class="inline">sub</code>, short for "subject") identifies the user; <code class="inline">exp</code> makes it expire automatically. The token is signed, not encrypted — never put secrets inside it, since anyone can decode the payload.</p>
+    </section>
+
+    <section class="topic" id="v19">
+      <div class="num">19</div>
+      <h2>Token-based authentication — securing endpoints</h2>
+      <div class="meta">#19 · 19:38</div>
+      <pre>from fastapi.security import OAuth2PasswordBearer
+from jose import JWTError
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
+
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(status_code=401, detail="Could not validate credentials")
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        email: str = payload.get("sub")
+        if email is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+
+    user = db.query(models.User).filter(models.User.email == email).first()
+    if user is None:
+        raise credentials_exception
+    return user</pre>
+      <p><code class="inline">OAuth2PasswordBearer</code> tells FastAPI's docs UI how to collect the token (it adds an "Authorize" button) and extracts the <code class="inline">Authorization: Bearer ...</code> header automatically for you.</p>
+    </section>
+
+    <section class="topic" id="v20">
+      <div class="num">20</div>
+      <h2>Protected routes</h2>
+      <div class="meta">#20 · 11:21</div>
+      <pre>@app.get("/me")
+def read_current_user(current_user: models.User = Depends(get_current_user)):
+    return current_user</pre>
+      <p>This is the payoff of the whole auth chain: any route that lists <code class="inline">Depends(get_current_user)</code> in its signature is automatically locked behind a valid JWT — a request with no token, an expired one, or a tampered one is rejected with <code class="inline">401</code> before the route body ever runs.</p>
+    </section>
+
+    <div class="divider-label">Relationships & extras</div>
+
+    <section class="topic" id="v21">
+      <div class="num">21</div>
+      <h2>Table relationships — one-to-many</h2>
+      <div class="meta">#21 · 20:48</div>
+      <pre>from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
+
+class User(Base):
+    __tablename__ = "users"
+    id = Column(Integer, primary_key=True)
+    email = Column(String, unique=True)
+    tasks = relationship("Task", back_populates="owner")
+
+class Task(Base):
+    __tablename__ = "tasks"
+    id = Column(Integer, primary_key=True)
+    title = Column(String)
+    owner_id = Column(Integer, ForeignKey("users.id"))
+    owner = relationship("User", back_populates="tasks")</pre>
+      <p>One <code class="inline">User</code> row can own many <code class="inline">Task</code> rows. The <code class="inline">ForeignKey</code> lives on the "many" side (<code class="inline">Task.owner_id</code>); <code class="inline">relationship()</code> on both classes lets you navigate the link in Python (<code class="inline">user.tasks</code>, <code class="inline">task.owner</code>) without writing joins by hand.</p>
+    </section>
+
+    <section class="topic" id="v22">
+      <div class="num">22</div>
+      <h2>User-owned tasks</h2>
+      <div class="meta">#22 · 11:28</div>
+      <pre>@app.post("/tasks/")
+def create_task(
+    task: schemas.TaskCreate,
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    db_task = models.Task(**task.dict(), owner_id=current_user.id)
+    db.add(db_task)
+    db.commit()
+    db.refresh(db_task)
+    return db_task
+
+@app.get("/tasks/")
+def list_my_tasks(
+    db: Session = Depends(get_db),
+    current_user: models.User = Depends(get_current_user),
+):
+    return db.query(models.Task).filter(models.Task.owner_id == current_user.id).all()</pre>
+      <p>Combining the auth dependency with the relationship from the previous video: every create/list is automatically scoped to the logged-in user, so one user can never see or create records under someone else's account.</p>
+    </section>
+
+    <section class="topic" id="v23">
+      <div class="num">23</div>
+      <h2>Sending emails</h2>
+      <div class="meta">#23 · 14:06</div>
+      <pre>pip install fastapi-mail</pre>
+      <pre>from fastapi_mail import FastMail, MessageSchema, ConnectionConfig
+
+conf = ConnectionConfig(
+    MAIL_USERNAME="you@gmail.com",
+    MAIL_PASSWORD="app-password",       <span class="c"># Gmail app password, not your real password</span>
+    MAIL_FROM="you@gmail.com",
+    MAIL_PORT=587,
+    MAIL_SERVER="smtp.gmail.com",
+    MAIL_STARTTLS=True,
+    MAIL_SSL_TLS=False,
+)
+
+async def send_welcome_email(to: str):
+    message = MessageSchema(
+        subject="Welcome!",
+        recipients=[to],
+        body="Thanks for signing up.",
+        subtype="html",
+    )
+    await FastMail(conf).send_message(message)</pre>
+      <div class="callout">Gmail requires an <strong>App Password</strong> (from Google Account → Security → 2-Step Verification), not your account password, once 2FA is enabled.</div>
+    </section>
+
+    <section class="topic" id="v24">
+      <div class="num">24</div>
+      <h2>Background tasks</h2>
+      <div class="meta">#24 · 6:00</div>
+      <p>Sending an email inline makes the client wait for SMTP round-trip time. FastAPI's <code class="inline">BackgroundTasks</code> defers work until <em>after</em> the response has already been sent:</p>
+      <pre>from fastapi import BackgroundTasks
+
+@app.post("/register")
+def register(
+    user: schemas.UserCreate,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
+    db_user = create_user_in_db(db, user)
+    background_tasks.add_task(send_welcome_email, db_user.email)
+    return db_user   <span class="c"># client gets this instantly — email sends after</span></pre>
+      <div class="callout">Good for: emails, logging, cache warming, webhooks — short, fire-and-forget jobs. For heavy or long-running work (video processing, bulk data jobs), reach for a real task queue like <strong>Celery</strong> or <strong>ARQ</strong> instead; background tasks run in-process and don't survive a server restart.</div>
+    </section>
+
+    <div class="divider-label">Bonus material in the playlist</div>
+
+    <section class="topic" id="v25">
+      <div class="num">25</div>
+      <h2>Deploying an AI agent with FastAPI + LangSmith + LangServe</h2>
+      <div class="meta">#33 (playlist numbering skips) · 29:12</div>
+      <p>A later add-on to the playlist: wraps a LangChain agent behind a FastAPI/LangServe app, adds LangSmith for tracing/observability of the agent's calls, and deploys it as a REST API — showing how the same FastAPI request/response and dependency patterns from earlier videos extend naturally to serving an LLM agent as an endpoint.</p>
+    </section>
+
+    <section class="topic" id="v26">
+      <div class="num">26</div>
+      <h2>Full crash course with GenAI & LangChain</h2>
+      <div class="meta">2:51:22 — standalone long-form video</div>
+      <p>A single long-form video bundling FastAPI fundamentals with building and deploying an AI agent as a REST API using LangChain — a self-contained crash course covering the same ground as the shorter series plus the GenAI layer on top.</p>
+    </section>
+
+    <footer class="end">
+      Notes compiled from video titles, descriptions, and durations in the public playlist, expanded with standard FastAPI/SQLAlchemy/JWT patterns for runnable context. For exact line-by-line code as taught, watch the corresponding video — timestamps above match the playlist order.
+    </footer>
+  </main>
+</div>

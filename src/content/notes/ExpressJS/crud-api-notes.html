@@ -1,0 +1,820 @@
+<title>Node CRUD API Field Notes</title>
+<meta name="description" content="Deep reference notes: building a production-shaped CRUD REST API with Node.js, Express, PostgreSQL and Docker.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/sql.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/bash.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/dockerfile.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/yaml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/languages/json.min.js"></script>
+
+<style>
+:root{
+  --paper:#faf8f4;
+  --paper-raised:#ffffff;
+  --ink:#1c2321;
+  --ink-soft:#4a5450;
+  --accent:#2f6f8f;
+  --accent-ink:#123a4d;
+  --accent-2:#c97b3d;
+  --good:#3d7a4f;
+  --bad:#b8453d;
+  --line:#ddd7ca;
+  --line-soft:#eae5da;
+  --code-bg:#1c262c;
+  --code-ink:#dbe3e6;
+  --code-line:#33434c;
+  --chip-bg:#eef2ee;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#15181a;
+    --paper-raised:#1c2023;
+    --ink:#e9e6df;
+    --ink-soft:#a8a79f;
+    --accent:#7fb6d4;
+    --accent-ink:#bfe0f0;
+    --accent-2:#e0a35f;
+    --good:#7fc494;
+    --bad:#e08079;
+    --line:#33372f;
+    --line-soft:#2a2e28;
+    --code-bg:#111619;
+    --code-ink:#dbe3e6;
+    --code-line:#2a373f;
+    --chip-bg:#20261f;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#15181a;
+  --paper-raised:#1c2023;
+  --ink:#e9e6df;
+  --ink-soft:#a8a79f;
+  --accent:#7fb6d4;
+  --accent-ink:#bfe0f0;
+  --accent-2:#e0a35f;
+  --good:#7fc494;
+  --bad:#e08079;
+  --line:#33372f;
+  --line-soft:#2a2e28;
+  --code-bg:#111619;
+  --code-ink:#dbe3e6;
+  --code-line:#2a373f;
+  --chip-bg:#20261f;
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--paper);
+  color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  line-height:1.6;
+  font-size:16px;
+}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} }
+
+h1,h2,h3,h4{
+  font-family:"Sora",system-ui,sans-serif;
+  color:var(--ink);
+  text-wrap:balance;
+  line-height:1.25;
+  margin:0 0 .5em;
+}
+a{color:var(--accent);}
+code, pre, kbd{font-family:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;}
+
+.shell{
+  display:grid;
+  grid-template-columns:240px minmax(0,760px);
+  gap:56px;
+  max-width:1100px;
+  margin:0 auto;
+  padding:48px 24px 120px;
+  justify-content:center;
+}
+@media (max-width:920px){
+  .shell{grid-template-columns:1fr; padding:28px 18px 90px;}
+  .toc{display:none;}
+}
+
+/* Header */
+.masthead{
+  grid-column:1/-1;
+  max-width:820px;
+  margin:0 auto 8px;
+  padding-bottom:28px;
+  border-bottom:1px solid var(--line);
+}
+.eyebrow{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-family:"IBM Plex Mono",monospace;
+  font-size:12.5px;
+  letter-spacing:.09em;
+  text-transform:uppercase;
+  color:var(--accent-2);
+  margin-bottom:14px;
+}
+.eyebrow::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--accent-2);}
+.masthead h1{font-size:2.15rem; font-weight:700; margin-bottom:.3em;}
+.masthead .sub{color:var(--ink-soft); font-size:1.05rem; max-width:62ch;}
+.stack-chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:18px;}
+.chip{
+  font-family:"IBM Plex Mono",monospace;
+  font-size:12px;
+  padding:4px 10px;
+  border-radius:5px;
+  background:var(--chip-bg);
+  border:1px solid var(--line);
+  color:var(--ink-soft);
+}
+
+/* TOC */
+.toc{position:sticky; top:40px; align-self:start; font-size:13.5px;}
+.toc-label{font-family:"IBM Plex Mono",monospace; text-transform:uppercase; letter-spacing:.08em; font-size:11px; color:var(--ink-soft); margin-bottom:10px;}
+.toc ol{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px;}
+.toc a{
+  display:block;
+  color:var(--ink-soft);
+  text-decoration:none;
+  padding:5px 0 5px 12px;
+  border-left:2px solid var(--line);
+}
+.toc a:hover{color:var(--accent); border-left-color:var(--accent);}
+
+/* Article */
+article > section{
+  padding-top:44px;
+  margin-top:8px;
+  border-top:1px solid var(--line-soft);
+}
+article > section:first-of-type{border-top:none;}
+.step-no{
+  font-family:"IBM Plex Mono",monospace;
+  color:var(--accent-2);
+  font-size:13px;
+  letter-spacing:.06em;
+}
+section h2{font-size:1.5rem;}
+section h3{font-size:1.12rem; margin-top:1.6em; color:var(--accent-ink);}
+p{margin:0 0 1em; max-width:68ch;}
+ul, ol.plain{margin:0 0 1.1em; padding-left:1.3em;}
+ul li, ol.plain li{margin-bottom:.45em; max-width:64ch;}
+
+pre{
+  background:var(--code-bg);
+  color:var(--code-ink);
+  padding:16px 18px;
+  border-radius:8px;
+  overflow-x:auto;
+  font-size:13px;
+  line-height:1.55;
+  margin:.9em 0 1.3em;
+  border:1px solid var(--code-line);
+}
+pre code{background:none; padding:0; font-size:inherit;}
+:not(pre) > code{
+  background:var(--chip-bg);
+  border:1px solid var(--line);
+  padding:.1em .4em;
+  border-radius:4px;
+  font-size:.9em;
+}
+.file-label{
+  font-family:"IBM Plex Mono",monospace;
+  font-size:11.5px;
+  color:var(--ink-soft);
+  letter-spacing:.03em;
+  margin:1.1em 0 -1em;
+  display:flex;
+  align-items:center;
+  gap:6px;
+}
+.file-label::before{content:"▸"; color:var(--accent-2);}
+
+/* callouts */
+.callout{
+  border-radius:8px;
+  padding:14px 16px;
+  margin:1.1em 0;
+  font-size:14.5px;
+  max-width:68ch;
+  border:1px solid var(--line);
+  background:var(--paper-raised);
+}
+.callout .k{font-family:"IBM Plex Mono",monospace; font-size:11px; text-transform:uppercase; letter-spacing:.08em; display:block; margin-bottom:6px;}
+.callout.warn{border-color:color-mix(in srgb, var(--accent-2) 40%, var(--line));}
+.callout.warn .k{color:var(--accent-2);}
+.callout.tip{border-color:color-mix(in srgb, var(--good) 40%, var(--line));}
+.callout.tip .k{color:var(--good);}
+
+/* tradeoff table */
+.tt-wrap{overflow-x:auto; margin:1em 0 1.4em;}
+table.tt{border-collapse:collapse; width:100%; min-width:560px; font-size:14px;}
+table.tt caption{text-align:left; font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-soft); margin-bottom:8px; letter-spacing:.03em;}
+table.tt th, table.tt td{border:1px solid var(--line); padding:9px 12px; text-align:left; vertical-align:top;}
+table.tt th{background:var(--chip-bg); font-family:"Sora",sans-serif; font-size:13px; font-weight:600;}
+table.tt td.good{color:var(--good);}
+table.tt td.bad{color:var(--bad);}
+
+.pc-grid{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin:1.1em 0 1.4em;}
+@media (max-width:560px){.pc-grid{grid-template-columns:1fr;}}
+.pc{border:1px solid var(--line); border-radius:8px; padding:14px 16px; background:var(--paper-raised);}
+.pc h4{font-size:13px; text-transform:uppercase; letter-spacing:.06em; font-family:"IBM Plex Mono",monospace; margin-bottom:8px;}
+.pc.pros h4{color:var(--good);}
+.pc.cons h4{color:var(--bad);}
+.pc ul{margin:0; padding-left:1.1em; font-size:14px;}
+.pc li{margin-bottom:.35em;}
+
+.diagram{
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:var(--paper-raised);
+  padding:18px 20px;
+  font-family:"IBM Plex Mono",monospace;
+  font-size:12.5px;
+  overflow-x:auto;
+  color:var(--ink-soft);
+  line-height:1.7;
+  margin:1em 0 1.4em;
+  white-space:pre;
+}
+
+.cheat-grid{display:grid; grid-template-columns:1fr 1fr; gap:0; border:1px solid var(--line); border-radius:8px; overflow:hidden; margin:1em 0 1.4em; font-size:13.5px;}
+.cheat-row{display:contents;}
+.cheat-row > div{padding:9px 14px; border-bottom:1px solid var(--line);}
+.cheat-row > div:first-child{background:var(--chip-bg); border-right:1px solid var(--line);}
+.cheat-row:last-child > div{border-bottom:none;}
+
+footer{
+  grid-column:1/-1;
+  max-width:820px;
+  margin:40px auto 0;
+  padding-top:24px;
+  border-top:1px solid var(--line);
+  color:var(--ink-soft);
+  font-size:13px;
+}
+</style>
+
+<div class="shell">
+  <div class="masthead">
+    <span class="eyebrow">Field notes · backend engineering</span>
+    <h1>Building a CRUD REST API with Node, Express, PostgreSQL &amp; Docker</h1>
+    <p class="sub">A deep, working reference on the full path from a Dockerized Postgres instance to a validated, error-handled, production-shaped Express API — with the tradeoffs you'd actually weigh at each decision point.</p>
+    <div class="stack-chips">
+      <span class="chip">Node.js / Express</span>
+      <span class="chip">PostgreSQL</span>
+      <span class="chip">Docker Compose</span>
+      <span class="chip">node-postgres (pg)</span>
+      <span class="chip">Joi validation</span>
+      <span class="chip">Centralized error handling</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <div class="toc-label">Contents</div>
+    <ol>
+      <li><a href="#architecture">1 · Architecture &amp; request lifecycle</a></li>
+      <li><a href="#structure">2 · Project structure</a></li>
+      <li><a href="#docker">3 · Docker &amp; Docker Compose</a></li>
+      <li><a href="#postgres">4 · PostgreSQL &amp; the pg pool</a></li>
+      <li><a href="#express">5 · Express app skeleton</a></li>
+      <li><a href="#crud">6 · CRUD routes &amp; controllers</a></li>
+      <li><a href="#validation">7 · Validation with Joi</a></li>
+      <li><a href="#errors">8 · Centralized error handling</a></li>
+      <li><a href="#envelope">9 · Standardized response envelope</a></li>
+      <li><a href="#config">10 · Config &amp; secrets</a></li>
+      <li><a href="#security">11 · Security checklist</a></li>
+      <li><a href="#orm">12 · ORM vs raw SQL</a></li>
+      <li><a href="#cheat">13 · Command cheat sheet</a></li>
+    </ol>
+  </nav>
+
+  <article>
+
+    <section id="architecture">
+      <span class="step-no">01</span>
+      <h2>Architecture &amp; request lifecycle</h2>
+      <p>A CRUD REST API sits between clients and a relational store, translating HTTP verbs onto rows. The shape that scales past a weekend project separates five concerns: <strong>routing</strong> (which URL/verb maps to which handler), <strong>validation</strong> (is the payload well-formed before touching the DB), <strong>controller logic</strong> (orchestration), <strong>data access</strong> (SQL / query builder), and <strong>error handling</strong> (one place that turns any thrown error into a consistent HTTP response).</p>
+      <div class="diagram">Client
+  │  HTTP request (JSON)
+  ▼
+Express app.js
+  │  global middleware: helmet, cors, json parser, morgan logger
+  ▼
+Router  ──────────────►  /api/users  (userRoutes.js)
+  │
+  ▼
+Validation middleware  (Joi schema.validate(req.body))
+  │  400 Bad Request if invalid ──────► errorHandler
+  ▼
+Controller  (userController.js)
+  │  calls service / model layer
+  ▼
+Data access layer  (pg Pool.query with parameterized SQL)
+  │
+  ▼
+PostgreSQL (running in its own Docker container)
+  │
+  ▼
+Controller formats response envelope ──► res.json({ success, data })
+  │
+  ▼  (any thrown/rejected error at any layer)
+Centralized error-handling middleware ──► res.json({ success:false, error })</div>
+      <p>The point of this layering isn't ceremony — it's that each concern becomes independently testable and swappable. You can replace Joi with Zod, or raw <code>pg</code> with Prisma, without touching routing or error handling.</p>
+      <div class="callout tip"><span class="k">Why Docker here</span>Docker doesn't change the architecture above — it changes how consistently that architecture reproduces on every machine. Postgres in a container means "works on my machine" stops being a version-mismatch problem.</div>
+    </section>
+
+    <section id="structure">
+      <span class="step-no">02</span>
+      <h2>Project structure</h2>
+      <p>A conventional layered layout for a small-to-mid API:</p>
+      <pre><code class="language-bash">.
+├── src/
+│   ├── config/
+│   │   ├── db.js            # pg Pool instance, exported
+│   │   └── env.js            # loads & validates process.env
+│   ├── middlewares/
+│   │   ├── validate.js       # generic Joi-validation middleware
+│   │   └── errorHandler.js   # centralized error middleware
+│   ├── routes/
+│   │   └── user.routes.js
+│   ├── controllers/
+│   │   └── user.controller.js
+│   ├── services/
+│   │   └── user.service.js   # SQL lives here
+│   ├── validators/
+│   │   └── user.schema.js    # Joi schemas
+│   ├── utils/
+│   │   ├── ApiError.js
+│   │   └── ApiResponse.js
+│   ├── app.js                 # express app, middleware wiring
+│   └── server.js              # boots app.listen(), reads PORT
+├── db/
+│   └── init.sql               # schema bootstrap, mounted into the pg container
+├── .env
+├── .dockerignore
+├── Dockerfile
+├── docker-compose.yml
+└── package.json</code></pre>
+      <p>The <code>services</code> layer is what keeps controllers thin: a controller parses <code>req</code>, calls a service function, and shapes the response — it never writes SQL directly. That's the seam you'd cut along if you later swapped Postgres for something else, or added a cache in front of reads.</p>
+    </section>
+
+    <section id="docker">
+      <span class="step-no">03</span>
+      <h2>Docker &amp; Docker Compose</h2>
+      <p>Two containers: one for the API, one for Postgres, joined by a Compose network and a named volume so data survives restarts.</p>
+
+      <div class="file-label">Dockerfile</div>
+      <pre><code class="language-dockerfile">FROM node:20-alpine AS base
+WORKDIR /usr/src/app
+
+# install deps in their own layer so `npm ci` is cached
+# whenever only source files change, not package.json
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+COPY . .
+
+ENV NODE_ENV=production
+EXPOSE 3000
+CMD ["node", "src/server.js"]</code></pre>
+
+      <div class="file-label">docker-compose.yml</div>
+      <pre><code class="language-yaml">version: "3.9"
+
+services:
+  api:
+    build: .
+    ports:
+      - "3000:3000"
+    env_file: .env
+    environment:
+      DB_HOST: db          # service name = DNS hostname on the compose network
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./src:/usr/src/app/src   # bind mount for live-reload in dev
+    command: npm run dev
+
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: appuser
+      POSTGRES_PASSWORD: apppass
+      POSTGRES_DB: appdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./db/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U appuser -d appdb"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:</code></pre>
+
+      <div class="callout tip"><span class="k">Why depends_on + healthcheck together</span><code>depends_on</code> alone only waits for the container to <em>start</em>, not for Postgres to be ready for connections. Pairing it with <code>condition: service_healthy</code> makes the API container wait for <code>pg_isready</code> to succeed — this is the single most common cause of "connection refused" on first boot.</div>
+
+      <p>Files dropped into <code>/docker-entrypoint-initdb.d/</code> run automatically, alphabetically, only on a <em>first</em> boot against an empty data volume — that's how <code>init.sql</code> bootstraps the schema without a separate migration step for a first run.</p>
+
+      <div class="tt-wrap">
+      <table class="tt">
+        <caption>Docker Compose Postgres vs a locally installed Postgres</caption>
+        <thead><tr><th></th><th>Dockerized Postgres</th><th>Local install</th></tr></thead>
+        <tbody>
+          <tr><td>Onboarding</td><td class="good"><code>docker compose up</code>, done</td><td class="bad">install, configure auth, set path per OS</td></tr>
+          <tr><td>Version parity across the team</td><td class="good">pinned by image tag</td><td class="bad">drifts silently</td></tr>
+          <tr><td>Teardown / reset</td><td class="good"><code>docker compose down -v</code></td><td class="bad">manual DB drop</td></tr>
+          <tr><td>Raw disk I/O performance</td><td class="bad">small overhead, negligible for dev</td><td class="good">native</td></tr>
+          <tr><td>Multiple project versions side-by-side</td><td class="good">trivial, one per compose file</td><td class="bad">port/version conflicts</td></tr>
+        </tbody>
+      </table>
+      </div>
+    </section>
+
+    <section id="postgres">
+      <span class="step-no">04</span>
+      <h2>PostgreSQL &amp; the pg connection pool</h2>
+      <p>Use <code>node-postgres</code> (<code>pg</code>) directly for full SQL control, or as the driver underneath an ORM/query builder. Either way, connect through a <strong>pool</strong>, never a single client — a pool hands out reusable connections instead of paying TCP + auth handshake cost per request.</p>
+
+      <div class="file-label">src/config/db.js</div>
+      <pre><code class="language-javascript">const { Pool } = require('pg');
+
+const pool = new Pool({
+  host: process.env.DB_HOST,
+  port: process.env.DB_PORT || 5432,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  max: 10,                     // max simultaneous connections in the pool
+  idleTimeoutMillis: 30000,    // close idle clients after 30s
+  connectionTimeoutMillis: 5000,
+});
+
+pool.on('error', (err) => {
+  // fires for errors on *idle* clients — a crashed connection
+  // sitting in the pool, not a query-time error
+  console.error('Unexpected idle client error', err);
+  process.exit(1);
+});
+
+module.exports = pool;</code></pre>
+
+      <div class="file-label">db/init.sql</div>
+      <pre><code class="language-sql">CREATE TABLE IF NOT EXISTS users (
+  id          SERIAL PRIMARY KEY,
+  name        VARCHAR(120) NOT NULL,
+  email       VARCHAR(160) NOT NULL UNIQUE,
+  created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);</code></pre>
+
+      <div class="callout warn"><span class="k">Always parameterize</span>Never string-concatenate values into SQL. <code>pool.query('SELECT * FROM users WHERE id = $1', [id])</code> — the <code>$1</code> placeholder is filled by the driver, which escapes it. Template-literal SQL is the #1 way this stack gets SQL-injected.</div>
+    </section>
+
+    <section id="express">
+      <span class="step-no">05</span>
+      <h2>Express app skeleton</h2>
+      <p>Split <code>app.js</code> (the Express instance and middleware wiring — importable by tests without opening a port) from <code>server.js</code> (the thing that actually calls <code>.listen()</code>).</p>
+
+      <div class="file-label">src/app.js</div>
+      <pre><code class="language-javascript">const express = require('express');
+const helmet = require('helmet');
+const cors = require('cors');
+const morgan = require('morgan');
+
+const userRoutes = require('./routes/user.routes');
+const errorHandler = require('./middlewares/errorHandler');
+const ApiError = require('./utils/ApiError');
+
+const app = express();
+
+app.use(helmet());                 // sensible security headers
+app.use(cors());                    // CORS policy — lock this down in prod
+app.use(express.json());            // parse JSON bodies
+app.use(morgan('dev'));             // request logging
+
+app.use('/api/users', userRoutes);
+
+// unmatched routes → 404, funneled into the same error pipeline
+app.use((req, res, next) => next(new ApiError(404, 'Route not found')));
+
+app.use(errorHandler);              // must be registered LAST
+
+module.exports = app;</code></pre>
+
+      <div class="file-label">src/server.js</div>
+      <pre><code class="language-javascript">const app = require('./app');
+const PORT = process.env.PORT || 3000;
+
+app.listen(PORT, () => console.log(`API listening on :${PORT}`));</code></pre>
+    </section>
+
+    <section id="crud">
+      <span class="step-no">06</span>
+      <h2>CRUD routes &amp; controllers</h2>
+
+      <div class="file-label">src/routes/user.routes.js</div>
+      <pre><code class="language-javascript">const router = require('express').Router();
+const ctrl = require('../controllers/user.controller');
+const validate = require('../middlewares/validate');
+const { createUserSchema, updateUserSchema } = require('../validators/user.schema');
+
+router.get('/', ctrl.listUsers);
+router.get('/:id', ctrl.getUser);
+router.post('/', validate(createUserSchema), ctrl.createUser);
+router.put('/:id', validate(updateUserSchema), ctrl.updateUser);
+router.delete('/:id', ctrl.deleteUser);
+
+module.exports = router;</code></pre>
+
+      <div class="file-label">src/services/user.service.js</div>
+      <pre><code class="language-javascript">const pool = require('../config/db');
+
+exports.findAll = async () => {
+  const { rows } = await pool.query(
+    'SELECT id, name, email, created_at FROM users ORDER BY id'
+  );
+  return rows;
+};
+
+exports.findById = async (id) => {
+  const { rows } = await pool.query(
+    'SELECT id, name, email, created_at FROM users WHERE id = $1',
+    [id]
+  );
+  return rows[0] || null;
+};
+
+exports.create = async ({ name, email }) => {
+  const { rows } = await pool.query(
+    `INSERT INTO users (name, email) VALUES ($1, $2)
+     RETURNING id, name, email, created_at`,
+    [name, email]
+  );
+  return rows[0];
+};
+
+exports.update = async (id, { name, email }) => {
+  const { rows } = await pool.query(
+    `UPDATE users SET name = $1, email = $2, updated_at = now()
+     WHERE id = $3
+     RETURNING id, name, email, updated_at`,
+    [name, email, id]
+  );
+  return rows[0] || null;
+};
+
+exports.remove = async (id) => {
+  const { rowCount } = await pool.query('DELETE FROM users WHERE id = $1', [id]);
+  return rowCount > 0;
+};</code></pre>
+
+      <div class="file-label">src/controllers/user.controller.js</div>
+      <pre><code class="language-javascript">const service = require('../services/user.service');
+const ApiError = require('../utils/ApiError');
+const ApiResponse = require('../utils/ApiResponse');
+
+// asyncHandler removes the need for try/catch in every controller —
+// it forwards any rejected promise straight to next(err)
+const asyncHandler = (fn) => (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+
+exports.listUsers = asyncHandler(async (req, res) => {
+  const users = await service.findAll();
+  res.json(new ApiResponse(200, users));
+});
+
+exports.getUser = asyncHandler(async (req, res) => {
+  const user = await service.findById(req.params.id);
+  if (!user) throw new ApiError(404, 'User not found');
+  res.json(new ApiResponse(200, user));
+});
+
+exports.createUser = asyncHandler(async (req, res) => {
+  const user = await service.create(req.body);
+  res.status(201).json(new ApiResponse(201, user, 'User created'));
+});
+
+exports.updateUser = asyncHandler(async (req, res) => {
+  const user = await service.update(req.params.id, req.body);
+  if (!user) throw new ApiError(404, 'User not found');
+  res.json(new ApiResponse(200, user, 'User updated'));
+});
+
+exports.deleteUser = asyncHandler(async (req, res) => {
+  const deleted = await service.remove(req.params.id);
+  if (!deleted) throw new ApiError(404, 'User not found');
+  res.status(204).send();
+});</code></pre>
+
+      <div class="callout tip"><span class="k">Why RETURNING matters</span>Postgres's <code>RETURNING</code> clause hands back the row you just wrote in the same round trip — no separate <code>SELECT</code> needed after an <code>INSERT</code>/<code>UPDATE</code>. One query instead of two, and no race window between the write and the read-back.</div>
+    </section>
+
+    <section id="validation">
+      <span class="step-no">07</span>
+      <h2>Validation with Joi</h2>
+      <p>Validate at the edge, before any DB call — malformed input should never reach a query. A generic middleware factory keeps this a one-line addition per route.</p>
+
+      <div class="file-label">src/validators/user.schema.js</div>
+      <pre><code class="language-javascript">const Joi = require('joi');
+
+exports.createUserSchema = Joi.object({
+  name: Joi.string().trim().min(2).max(120).required(),
+  email: Joi.string().trim().email().required(),
+});
+
+exports.updateUserSchema = Joi.object({
+  name: Joi.string().trim().min(2).max(120).required(),
+  email: Joi.string().trim().email().required(),
+});</code></pre>
+
+      <div class="file-label">src/middlewares/validate.js</div>
+      <pre><code class="language-javascript">const ApiError = require('../utils/ApiError');
+
+module.exports = (schema) => (req, res, next) => {
+  const { error, value } = schema.validate(req.body, {
+    abortEarly: false,   // collect every violation, not just the first
+    stripUnknown: true,  // drop fields the schema doesn't define
+  });
+
+  if (error) {
+    const details = error.details.map((d) => d.message);
+    return next(new ApiError(400, 'Validation failed', details));
+  }
+
+  req.body = value; // sanitized/coerced payload
+  next();
+};</code></pre>
+
+      <div class="callout tip"><span class="k">abortEarly: false</span>Without this flag Joi stops at the first invalid field. A client fixing one error at a time against a slow feedback loop is a worse experience than getting the full list of what's wrong in one response.</div>
+    </section>
+
+    <section id="errors">
+      <span class="step-no">08</span>
+      <h2>Centralized error handling</h2>
+      <p>One error-handling middleware, registered last, is the single place that decides HTTP status and response shape for every failure — thrown, rejected, or <code>next(err)</code>'d — anywhere in the request lifecycle.</p>
+
+      <div class="file-label">src/utils/ApiError.js</div>
+      <pre><code class="language-javascript">class ApiError extends Error {
+  constructor(statusCode, message, details = []) {
+    super(message);
+    this.statusCode = statusCode;
+    this.details = details;
+    this.isOperational = true; // distinguishes "expected" errors from bugs
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+
+module.exports = ApiError;</code></pre>
+
+      <div class="file-label">src/middlewares/errorHandler.js</div>
+      <pre><code class="language-javascript">const ApiError = require('../utils/ApiError');
+
+module.exports = (err, req, res, next) => {
+  let error = err;
+
+  // Postgres unique-violation → surface as a clean 409, not a 500
+  if (err.code === '23505') {
+    error = new ApiError(409, 'Resource already exists');
+  } else if (!(error instanceof ApiError)) {
+    // unexpected/programmer error — log full detail, leak nothing to the client
+    console.error(err);
+    error = new ApiError(500, 'Internal server error');
+  }
+
+  res.status(error.statusCode).json({
+    success: false,
+    message: error.message,
+    ...(error.details?.length ? { details: error.details } : {}),
+    ...(process.env.NODE_ENV !== 'production' ? { stack: err.stack } : {}),
+  });
+};</code></pre>
+
+      <div class="callout warn"><span class="k">Four-argument signature is load-bearing</span>Express only recognizes a middleware as an error handler if it declares exactly <code>(err, req, res, next)</code> — four parameters, in that order, even though <code>next</code> is unused. Drop to three and it's treated as a normal middleware and silently never called on error.</div>
+    </section>
+
+    <section id="envelope">
+      <span class="step-no">09</span>
+      <h2>Standardized response envelope</h2>
+      <p>Every success response follows the same shape, so client code never branches on which endpoint it called.</p>
+
+      <div class="file-label">src/utils/ApiResponse.js</div>
+      <pre><code class="language-javascript">class ApiResponse {
+  constructor(statusCode, data, message = 'Success') {
+    this.statusCode = statusCode;
+    this.success = statusCode < 400;
+    this.message = message;
+    this.data = data;
+  }
+}
+
+module.exports = ApiResponse;</code></pre>
+
+      <div class="file-label">Example success</div>
+      <pre><code class="language-json">{
+  "statusCode": 201,
+  "success": true,
+  "message": "User created",
+  "data": { "id": 4, "name": "Asha Rao", "email": "asha@example.com" }
+}</code></pre>
+
+      <div class="file-label">Example failure (from the error handler)</div>
+      <pre><code class="language-json">{
+  "success": false,
+  "message": "Validation failed",
+  "details": ["\"email\" must be a valid email"]
+}</code></pre>
+    </section>
+
+    <section id="config">
+      <span class="step-no">10</span>
+      <h2>Config &amp; secrets</h2>
+      <div class="file-label">.env</div>
+      <pre><code class="language-bash">NODE_ENV=development
+PORT=3000
+DB_HOST=db
+DB_PORT=5432
+DB_USER=appuser
+DB_PASSWORD=apppass
+DB_NAME=appdb</code></pre>
+      <p>Load and <em>validate</em> env vars at boot rather than trusting them silently — a missing <code>DB_PASSWORD</code> should fail fast at startup, not three requests in when the pool tries to connect.</p>
+      <pre><code class="language-javascript">// src/config/env.js
+const required = ['DB_HOST', 'DB_USER', 'DB_PASSWORD', 'DB_NAME'];
+const missing = required.filter((k) => !process.env[k]);
+if (missing.length) {
+  throw new Error(`Missing required env vars: ${missing.join(', ')}`);
+}</code></pre>
+      <div class="callout warn"><span class="k">.env in .dockerignore and .gitignore</span>The Compose file's <code>env_file: .env</code> injects secrets at container start — the file itself should never be baked into the image (<code>.dockerignore</code>) or committed (<code>.gitignore</code>). Ship a <code>.env.example</code> with placeholder values instead.</div>
+    </section>
+
+    <section id="security">
+      <span class="step-no">11</span>
+      <h2>Security checklist</h2>
+      <ul>
+        <li><strong>Parameterized queries only</strong> — never interpolate user input into SQL strings.</li>
+        <li><strong>helmet()</strong> — sets <code>X-Content-Type-Options</code>, <code>X-Frame-Options</code>, and other headers that cost nothing to enable.</li>
+        <li><strong>Explicit CORS origin</strong> in production — <code>cors()</code> with no options reflects any origin; pass <code>{ origin: 'https://yourapp.com' }</code>.</li>
+        <li><strong>Rate limiting</strong> — <code>express-rate-limit</code> on write endpoints at minimum, to blunt brute-force and scraping.</li>
+        <li><strong>Least-privilege DB role</strong> — the app's Postgres user shouldn't have <code>SUPERUSER</code> or the ability to <code>DROP</code> tables it doesn't own.</li>
+        <li><strong>Don't leak stack traces</strong> in production responses — the error handler above gates <code>stack</code> behind <code>NODE_ENV !== 'production'</code>.</li>
+        <li><strong>Validate <em>and</em> constrain at the DB layer</strong> — Joi catches bad input; a <code>UNIQUE</code> constraint and <code>NOT NULL</code> catch the race conditions Joi structurally can't (two concurrent requests both passing validation for the same email).</li>
+      </ul>
+    </section>
+
+    <section id="orm">
+      <span class="step-no">12</span>
+      <h2>Raw <code>pg</code> vs a query builder vs a full ORM</h2>
+      <p>The tutorial's stack uses raw <code>pg</code> for full control and zero abstraction cost — worth knowing what you're trading away.</p>
+
+      <div class="tt-wrap">
+      <table class="tt">
+        <caption>Data-access layer options for this stack</caption>
+        <thead><tr><th></th><th>node-postgres (pg)</th><th>Knex</th><th>Sequelize / Prisma</th></tr></thead>
+        <tbody>
+          <tr><td>SQL control</td><td class="good">full — you write it</td><td class="good">near-full, builder syntax</td><td class="bad">abstracted away</td></tr>
+          <tr><td>Learning curve</td><td class="good">just SQL</td><td>builder API + SQL</td><td class="bad">ORM-specific concepts</td></tr>
+          <tr><td>Migrations</td><td class="bad">hand-rolled / external tool</td><td class="good">built in</td><td class="good">built in</td></tr>
+          <tr><td>Boilerplate for simple CRUD</td><td class="bad">most</td><td>medium</td><td class="good">least</td></tr>
+          <tr><td>Complex joins / window functions</td><td class="good">natural</td><td>natural</td><td class="bad">often fights the ORM</td></tr>
+          <tr><td>Type safety (TS)</td><td class="bad">manual typing</td><td>partial</td><td class="good">Prisma generates types</td></tr>
+        </tbody>
+      </table>
+      </div>
+
+      <p>Raw <code>pg</code> is the right default when the query set is small and known (exactly this CRUD-API case) and you want zero surprise about what SQL actually runs. Reach for Prisma or Sequelize once the schema and relations grow past what you want to hand-write repeatedly, or once a team needs migration tooling and generated types more than it needs query-level control.</p>
+    </section>
+
+    <section id="cheat">
+      <span class="step-no">13</span>
+      <h2>Command cheat sheet</h2>
+      <div class="cheat-grid">
+        <div class="cheat-row"><div><code>docker compose up --build</code></div><div>build images and start api + db, foreground</div></div>
+        <div class="cheat-row"><div><code>docker compose up -d</code></div><div>same, detached</div></div>
+        <div class="cheat-row"><div><code>docker compose down -v</code></div><div>stop and remove containers <em>and</em> the pgdata volume (full reset)</div></div>
+        <div class="cheat-row"><div><code>docker compose logs -f api</code></div><div>tail the API container's logs</div></div>
+        <div class="cheat-row"><div><code>docker exec -it &lt;db-container&gt; psql -U appuser -d appdb</code></div><div>open a psql shell inside the running db container</div></div>
+        <div class="cheat-row"><div><code>curl -X POST localhost:3000/api/users -H "Content-Type: application/json" -d '{"name":"Ada","email":"ada@example.com"}'</code></div><div>create a user</div></div>
+        <div class="cheat-row"><div><code>curl localhost:3000/api/users</code></div><div>list users</div></div>
+        <div class="cheat-row"><div><code>curl -X DELETE localhost:3000/api/users/1</code></div><div>delete user 1</div></div>
+      </div>
+    </section>
+
+  </article>
+
+  <footer>Reference notes for a Node.js + Express + PostgreSQL + Docker CRUD API build (Joi validation, centralized error handling, standardized response envelope).</footer>
+</div>
+
+<script>
+  if (window.hljs) hljs.highlightAll();
+</script>

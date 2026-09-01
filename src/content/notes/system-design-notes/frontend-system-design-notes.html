@@ -1,0 +1,443 @@
+<title>Frontend System Design Notes</title>
+<style>
+:root{
+  --bg:#f5f4f8; --bg-raised:#ffffff; --ink:#1c1a29; --ink-soft:#4a4560; --muted:#847e99;
+  --line:#dbd7e6; --line-soft:#eae7f1; --accent:#6440d6; --accent-soft:#ece6fb; --accent-ink:#4c2bb8;
+  --good:#1f8f5f; --good-soft:#e2f3ea; --warn:#c4701f; --warn-soft:#fbeddc; --code-bg:#eeecf5;
+  --shadow: 0 1px 2px rgba(28,26,41,0.05), 0 8px 24px -12px rgba(28,26,41,0.14);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#131019; --bg-raised:#1b1726; --ink:#ece9f5; --ink-soft:#c1bad6; --muted:#8a82a3;
+    --line:#2e2842; --line-soft:#221d31; --accent:#a487f5; --accent-soft:#241c3a; --accent-ink:#c2adfa;
+    --good:#4fd393; --good-soft:#0f2419; --warn:#e0a748; --warn-soft:#2c2313; --code-bg:#1e1930;
+    --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 8px 24px -12px rgba(0,0,0,0.55);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#131019; --bg-raised:#1b1726; --ink:#ece9f5; --ink-soft:#c1bad6; --muted:#8a82a3;
+  --line:#2e2842; --line-soft:#221d31; --accent:#a487f5; --accent-soft:#241c3a; --accent-ink:#c2adfa;
+  --good:#4fd393; --good-soft:#0f2419; --warn:#e0a748; --warn-soft:#2c2313; --code-bg:#1e1930;
+  --shadow: 0 1px 2px rgba(0,0,0,0.35), 0 8px 24px -12px rgba(0,0,0,0.55);
+}
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{ margin:0; background:var(--bg); color:var(--ink); font-family:"IBM Plex Serif",Georgia,serif; font-size:17px; line-height:1.65; }
+::selection{ background:var(--accent-soft); color:var(--accent-ink); }
+h1,h2,h3,h4{ font-family:"IBM Plex Sans","Segoe UI",Arial,sans-serif; color:var(--ink); text-wrap:balance; font-weight:600; letter-spacing:-0.01em; }
+.mono{ font-family:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace; }
+a{ color:var(--accent-ink); }
+.shell{ display:grid; grid-template-columns: 280px minmax(0,1fr); max-width:1200px; margin:0 auto; }
+@media (max-width: 900px){ .shell{ grid-template-columns: 1fr; } nav.toc{ display:none; } }
+nav.toc{ position:sticky; top:0; align-self:start; height:100vh; overflow-y:auto; padding:32px 18px 32px 26px; border-right:1px solid var(--line-soft); }
+nav.toc .eyebrow{ font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin:0 0 10px; }
+nav.toc .grp{ font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent-ink); margin:20px 0 6px; padding-left:8px; }
+nav.toc .grp:first-of-type{ margin-top:6px; }
+nav.toc ol{ list-style:none; margin:0; padding:0; counter-reset:toc; }
+nav.toc li{ counter-increment:toc; margin-bottom:1px; }
+nav.toc a{ display:flex; gap:7px; padding:5px 8px; border-radius:6px; color:var(--ink-soft); text-decoration:none; font-family:"IBM Plex Sans",sans-serif; font-size:12.6px; line-height:1.3; }
+nav.toc a:hover{ background:var(--line-soft); color:var(--ink); }
+nav.toc a::before{ content: counter(toc, decimal-leading-zero); font-family:"IBM Plex Mono",monospace; color:var(--muted); font-size:11px; flex-shrink:0; padding-top:1px; }
+main{ padding:48px 44px 130px; min-width:0; }
+@media (max-width: 640px){ main{ padding:32px 20px 90px; } }
+header.hero{ margin-bottom:40px; padding-bottom:28px; border-bottom:1px solid var(--line); }
+header.hero .eyebrow{ font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:0.1em; text-transform:uppercase; color:var(--accent-ink); margin:0 0 10px; }
+header.hero h1{ font-size:clamp(28px,4vw,40px); margin:0 0 12px; line-height:1.1; }
+header.hero p.dek{ font-family:"IBM Plex Serif",serif; color:var(--ink-soft); font-size:17px; max-width:64ch; margin:0 0 16px; }
+header.hero .source{ display:flex; flex-wrap:wrap; gap:8px 18px; font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--muted); }
+header.hero .source b{ color:var(--ink-soft); font-weight:500; }
+.groupband{ margin:60px 0 28px; padding:12px 18px; background:var(--accent-soft); border-radius:8px; display:flex; align-items:baseline; gap:12px; }
+.groupband h2{ margin:0; font-size:14px; color:var(--accent-ink); text-transform:uppercase; letter-spacing:0.06em; }
+.groupband span{ font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--accent-ink); opacity:0.75; }
+section.topic{ margin:0 0 52px; scroll-margin-top:24px; padding-bottom:6px; border-bottom:1px solid var(--line-soft); }
+section.topic > .num{ font-family:"IBM Plex Mono",monospace; color:var(--accent-ink); font-size:13px; letter-spacing:0.08em; }
+section.topic > h2{ font-size:23px; margin:2px 0 16px; }
+section.topic h3{ font-size:15.5px; margin:24px 0 8px; color:var(--ink); }
+section.topic p{ margin:0 0 14px; max-width:72ch; color:var(--ink-soft); }
+section.topic p strong{ color:var(--ink); font-weight:600; }
+section.topic ul, section.topic ol{ margin:0 0 16px; padding-left:22px; color:var(--ink-soft); max-width:68ch; }
+section.topic li{ margin-bottom:6px; }
+section.topic li::marker{ color:var(--muted); }
+section.topic li b{ color:var(--ink); font-weight:600;}
+code{ font-family:"IBM Plex Mono",monospace; background:var(--code-bg); padding:1.5px 6px; border-radius:4px; font-size:0.9em; color:var(--accent-ink); }
+.callout{ border:1px solid var(--line); border-left:3px solid var(--accent); background:var(--bg-raised); border-radius:6px; padding:14px 18px; margin:16px 0; max-width:72ch; box-shadow:var(--shadow); }
+.callout .label{ font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:0.08em; text-transform:uppercase; color:var(--accent-ink); margin-bottom:6px; display:block; }
+.callout p{ margin:0; color:var(--ink-soft); }
+.callout p + p{ margin-top:8px; }
+.callout.warn{ border-left-color:var(--warn); } .callout.warn .label{ color:var(--warn); }
+.callout.good{ border-left-color:var(--good); } .callout.good .label{ color:var(--good); }
+.factgrid{ display:grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap:12px; margin:18px 0 20px; max-width:900px; }
+.fact{ border:1px solid var(--line); background:var(--bg-raised); border-radius:8px; padding:14px 16px; box-shadow:var(--shadow); }
+.fact .k{ font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); margin-bottom:5px; }
+.fact .v{ font-size:14px; color:var(--ink); font-family:"IBM Plex Sans",sans-serif; line-height:1.45; }
+.diagram{ border:1px solid var(--line); background:var(--bg-raised); border-radius:10px; padding:20px 20px 16px; margin:20px 0 24px; box-shadow:var(--shadow); max-width:900px; overflow-x:auto; }
+.diagram .cap{ font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted); margin-top:10px; }
+.diagram svg{ display:block; width:100%; height:auto; }
+.diagram svg text{ font-family:"IBM Plex Sans",sans-serif; }
+.tablewrap{ overflow-x:auto; max-width:900px; margin:16px 0 24px; }
+table{ border-collapse:collapse; width:100%; font-size:14px; font-family:"IBM Plex Sans",sans-serif; }
+th,td{ text-align:left; padding:9px 14px; border-bottom:1px solid var(--line-soft); color:var(--ink-soft); }
+th{ color:var(--muted); font-weight:500; font-size:11.5px; text-transform:uppercase; letter-spacing:0.05em; }
+td b, td code{ color:var(--ink); }
+tr:last-child td{ border-bottom:none; }
+.scorebar{ display:grid; grid-template-columns: repeat(auto-fit, minmax(130px,1fr)); gap:1px; background:var(--line); border:1px solid var(--line); margin:20px 0 24px; max-width:900px; }
+.scorebar .cell{ background:var(--bg-raised); padding:14px 14px; }
+.scorebar .cell .num{ font-family:"IBM Plex Mono",monospace; font-size:20px; font-weight:600; color:var(--accent-ink); font-variant-numeric: tabular-nums; }
+.scorebar .cell .lbl{ font-family:"IBM Plex Sans",sans-serif; font-size:11px; color:var(--muted); margin-top:4px; }
+footer{ border-top:1px solid var(--line); margin-top:20px; padding-top:24px; font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted); }
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<div class="shell">
+<nav class="toc">
+  <p class="eyebrow">19 topics</p>
+  <p class="grp">Org &amp; architecture</p>
+  <ol>
+    <li><a href="#t1">Why frontend system design matters now</a></li>
+    <li><a href="#t2">Microservices, briefly</a></li>
+    <li><a href="#t3">Microfrontends</a></li>
+    <li><a href="#t4">Two career paths</a></li>
+  </ol>
+  <p class="grp">Talking to the backend</p>
+  <ol start="5">
+    <li><a href="#t5">API Gateway</a></li>
+    <li><a href="#t6">Backend for Frontend (BFF)</a></li>
+    <li><a href="#t7">Load balancing</a></li>
+    <li><a href="#t8">Docker &amp; Kubernetes</a></li>
+    <li><a href="#t9">CDN</a></li>
+  </ol>
+  <p class="grp">Consistency at scale</p>
+  <ol start="10">
+    <li><a href="#t10">Design systems</a></li>
+    <li><a href="#t11">Design-to-code MCP</a></li>
+    <li><a href="#t12">Atomic CSS &amp; Tailwind</a></li>
+    <li><a href="#t13">Monorepo</a></li>
+  </ol>
+  <p class="grp">AI-native UI</p>
+  <ol start="14">
+    <li><a href="#t14">MCP UI</a></li>
+  </ol>
+  <p class="grp">Performance</p>
+  <ol start="15">
+    <li><a href="#t15">Core Web Vitals</a></li>
+    <li><a href="#t16">Code splitting &amp; lazy loading</a></li>
+    <li><a href="#t17">Rendering strategies</a></li>
+    <li><a href="#t18">Real-time data fetching</a></li>
+  </ol>
+  <p class="grp">Wrap-up</p>
+  <ol start="19">
+    <li><a href="#t19">Where to go deeper</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<header class="hero">
+  <p class="eyebrow">Video notes</p>
+  <h1>Frontend System Design, Explained</h1>
+  <p class="dek">Structured notes on the frontend-specific counterpart to backend system design — microfrontends, monorepos, MCP UI, and the rendering/performance layer — including where AI coding agents change the calculus.</p>
+  <div class="source">
+    <span><b>Title:</b> "Frontend System Design Explained w/ Senior Engineer"</span>
+    <span><b>Channel:</b> theSeniorDev</span>
+    <span><b>Video ID:</b> KuClyhvSzXk</span>
+  </div>
+</header>
+
+<section class="topic" id="t1">
+  <p class="num">01</p>
+  <h2>Why Frontend System Design Matters Now</h2>
+  <p>The framing premise: as AI coding agents get better at raw implementation, the thing that differentiates a strong frontend engineer stops being typing speed and starts being <strong>architecture and system design</strong> — a skill set most "system design" content ignores entirely in favor of backend-only material.</p>
+  <div class="callout">
+    <span class="label">The core strategic shift stated in the video</span>
+    <p>Coding agents cut implementation time but <em>increase verification time</em> — someone still has to check the agent's work. The design goal becomes building systems that "decrease verification time and minimize architectural drift while maximizing velocity." It's "not anymore about implementing fast but rather building a system that is extremely easy to verify."</p>
+  </div>
+</section>
+
+<section class="topic" id="t2">
+  <p class="num">02</p>
+  <h2>Microservices, Briefly</h2>
+  <p>Set up as the backend precedent frontend architecture mirrors: breaking a monolithic backend into independent small backends, each exposing an API, typically layered as <strong>API layer → business logic layer → persistence layer → database</strong> (Postgres, or a NoSQL store). Each microservice deploys independently, on its own codebase, and services only talk to each other through APIs.</p>
+  <div class="scorebar">
+    <div class="cell"><div class="num">1,000</div><div class="lbl">microservices in prod at the speaker's company</div></div>
+    <div class="cell"><div class="num">13</div><div class="lbl">owned by the speaker's own team</div></div>
+    <div class="cell"><div class="num">40</div><div class="lbl">people on one dev team</div></div>
+    <div class="cell"><div class="num">90 min</div><div class="lbl">their daily standup (1.5 min/person)</div></div>
+  </div>
+  <p><strong>Conway's Law</strong> is the stated reasoning for why this matters at all: "the soft architecture of a system will look like the organization of the people" — so enabling independent teams requires structuring the code into independent vertical slices, not the other way around. <strong>Two-pizza teams</strong> (Jeff Bezos' principle: 5–9 people) is cited as the target team size, with an explicit aside that AI shrinks it further — "one pizza team becomes smaller with AI."</p>
+</section>
+
+<section class="topic" id="t3">
+  <p class="num">03</p>
+  <h2>Microfrontends</h2>
+  <p><strong>The problem:</strong> splitting the backend into microservices doesn't help if the frontend stays a single monolith — "so many people pushing code to the same client that it's so easy for someone to make a mistake or bring the whole system down," plus the coordination overhead of everyone touching one codebase.</p>
+  <div class="diagram">
+    <svg viewBox="0 0 780 200" xmlns="http://www.w3.org/2000/svg">
+      <rect x="300" y="15" width="180" height="45" rx="7" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="390" y="35" text-anchor="middle" font-size="11" font-weight="600" fill="var(--ink)">Shell Application</text>
+      <text x="390" y="50" text-anchor="middle" font-size="9" class="mono-t" fill="var(--accent-ink)">routing · i18n · auth state</text>
+      <line x1="330" y1="60" x2="150" y2="105" stroke="var(--ink-soft)" stroke-width="1.3" marker-end="url(#tf1)"/>
+      <line x1="390" y1="60" x2="390" y2="105" stroke="var(--ink-soft)" stroke-width="1.3" marker-end="url(#tf1)"/>
+      <line x1="450" y1="60" x2="630" y2="105" stroke="var(--ink-soft)" stroke-width="1.3" marker-end="url(#tf1)"/>
+      <g font-size="10">
+        <rect x="70" y="110" width="160" height="45" rx="6" fill="var(--bg-raised)" stroke="var(--line)" stroke-width="1.3"/>
+        <text x="150" y="130" text-anchor="middle" font-weight="600">Header MFE</text>
+        <text x="150" y="145" text-anchor="middle" font-size="8.5" class="mono-t" fill="var(--muted)">header.example.com</text>
+        <rect x="310" y="110" width="160" height="45" rx="6" fill="var(--bg-raised)" stroke="var(--line)" stroke-width="1.3"/>
+        <text x="390" y="130" text-anchor="middle" font-weight="600">Product Page MFE</text>
+        <text x="390" y="145" text-anchor="middle" font-size="8.5" class="mono-t" fill="var(--muted)">own team, own deploy</text>
+        <rect x="550" y="110" width="160" height="45" rx="6" fill="var(--bg-raised)" stroke="var(--line)" stroke-width="1.3"/>
+        <text x="630" y="130" text-anchor="middle" font-weight="600">Cart / Payment MFE</text>
+        <text x="630" y="145" text-anchor="middle" font-size="8.5" class="mono-t" fill="var(--muted)">its own microservices</text>
+      </g>
+      <defs><marker id="tf1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--ink-soft)"/></marker></defs>
+    </svg>
+    <p class="cap">A shell owns global concerns and dynamically loads independent frontend apps — each a separately deployable domain. The video's example: Amazon likely splits header, product page, and payment into microfrontends "with even more granularity" than this.</p>
+  </div>
+  <p><strong>Vertical slicing:</strong> each feature is owned end-to-end by one team, and one microfrontend typically talks to one or a few microservices in the same domain — so "releases are not a bottleneck for another team."</p>
+</section>
+
+<section class="topic" id="t4">
+  <p class="num">04</p>
+  <h2>Two Career Paths This Creates</h2>
+  <div class="factgrid">
+    <div class="fact"><div class="k">Path 1 — feature team</div><div class="v">Works a vertical slice full-stack: "a team of one that can work with the coding agent across the full stack."</div></div>
+    <div class="fact"><div class="k">Path 2 — infrastructure</div><div class="v">Builds the shell, owns the design system, or works on the platform team.</div></div>
+  </div>
+  <p><strong>Direct claim:</strong> "if you are an engineer and you're doing only front end or back end, you have to move as fast as you can towards becoming a vertically integrated engineer."</p>
+  <p><strong>Why microfrontends specifically help with AI coding:</strong> they decrease the blast radius of a production bug, reduce cognitive load via smaller, localized PRs, and — directly — give the coding agent <em>less context to hold</em>, making it more efficient and the change easier to verify.</p>
+</section>
+
+<div class="groupband"><h2>Talking to the backend</h2><span>topics 5 – 9</span></div>
+
+<section class="topic" id="t5">
+  <p class="num">05</p>
+  <h2>API Gateway</h2>
+  <p><strong>Problem:</strong> multiple microfrontends each hitting multiple backend services means re-implementing caching, HTTPS, auth, content negotiation, and rate limiting redundantly, on both client and each backend service.</p>
+  <p><strong>Fix:</strong> a single gateway sitting in front of every backend service. The client implements these "edge" concerns once; individual services never duplicate the logic. Backend services then live inside a private network (a VPC), reachable only through the gateway.</p>
+  <div class="callout good">
+    <span class="label">A performance detail worth keeping</span>
+    <p>Client-to-gateway traffic uses HTTPS; gateway-to-microservice traffic inside the closed network can use plain HTTP — skipping the extra round trips of a TLS handshake where the network is already trusted. Recommendation: "once you have a couple of microservices in production it's a good idea to add an API gateway both for security and performance and also less complexity in the front end."</p>
+  </div>
+</section>
+
+<section class="topic" id="t6">
+  <p class="num">06</p>
+  <h2>Backend for Frontend (BFF)</h2>
+  <p><strong>Problem:</strong> a frontend calling several microservices directly means juggling several different API shapes and needing a different client SDK per service — and any feature needing even a slight backend change means going to talk to that backend team, waiting for it to become their priority. The video notes this is a real, named frustration even for senior engineers at large companies who "have to talk to three different backend teams" just to ship a feature.</p>
+  <div class="diagram">
+    <svg viewBox="0 0 780 190" xmlns="http://www.w3.org/2000/svg">
+      <rect x="20" y="30" width="110" height="42" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.4"/>
+      <text x="75" y="55" text-anchor="middle" font-size="10.5" font-weight="600">Desktop client</text>
+      <line x1="130" y1="51" x2="200" y2="51" stroke="var(--ink-soft)" stroke-width="1.3" marker-end="url(#tf2)"/>
+      <rect x="205" y="30" width="110" height="42" rx="6" fill="var(--bg-raised)" stroke="var(--line)" stroke-width="1.3"/>
+      <text x="260" y="51" text-anchor="middle" font-size="10" font-weight="600">Desktop BFF</text>
+      <text x="260" y="65" text-anchor="middle" font-size="8" class="mono-t" fill="var(--muted)">bulk data</text>
+
+      <rect x="20" y="118" width="110" height="42" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.4"/>
+      <text x="75" y="139" text-anchor="middle" font-size="10.5" font-weight="600">Mobile client</text>
+      <line x1="130" y1="139" x2="200" y2="139" stroke="var(--ink-soft)" stroke-width="1.3" marker-end="url(#tf2)"/>
+      <rect x="205" y="118" width="110" height="42" rx="6" fill="var(--bg-raised)" stroke="var(--line)" stroke-width="1.3"/>
+      <text x="260" y="139" text-anchor="middle" font-size="10" font-weight="600">Mobile BFF</text>
+      <text x="260" y="153" text-anchor="middle" font-size="8" class="mono-t" fill="var(--muted)">lean payloads</text>
+
+      <line x1="315" y1="51" x2="410" y2="80" stroke="var(--ink-soft)" stroke-width="1.2" marker-end="url(#tf2)"/>
+      <line x1="315" y1="139" x2="410" y2="105" stroke="var(--ink-soft)" stroke-width="1.2" marker-end="url(#tf2)"/>
+      <text x="380" y="95" text-anchor="middle" font-size="9" fill="var(--accent-ink)" font-weight="600">GraphQL</text>
+      <g font-size="9.5">
+        <rect x="415" y="30" width="120" height="38" rx="6" fill="var(--line-soft)" stroke="var(--muted)" stroke-width="1.2"/>
+        <text x="475" y="53" text-anchor="middle">Users svc</text>
+        <rect x="415" y="80" width="120" height="38" rx="6" fill="var(--line-soft)" stroke="var(--muted)" stroke-width="1.2"/>
+        <text x="475" y="103" text-anchor="middle">Catalog svc</text>
+        <rect x="415" y="130" width="120" height="38" rx="6" fill="var(--line-soft)" stroke="var(--muted)" stroke-width="1.2"/>
+        <text x="475" y="153" text-anchor="middle">Orders svc</text>
+      </g>
+      <defs><marker id="tf2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--ink-soft)"/></marker></defs>
+    </svg>
+    <p class="cap">Each client gets its own dedicated backend, owned by the frontend team, sitting between it and the "pure" microservices owned by backend teams.</p>
+  </div>
+  <p><strong>Why per-client, not one shared API:</strong> desktop wants to fetch a lot of data at once; mobile's smaller screen needs fewer, smaller records. A single unified API "risks being bloated, or it will end up not satisfying one of the requests" — the classic over-fetching (desktop payload wasted on mobile) / under-fetching (mobile-sized responses forcing desktop into many requests) trade-off. "It's a lot better if you split those things."</p>
+  <p><strong>GraphQL</strong> is named specifically as "a great technology to build backends for frontends," and the video calls it "a requirement for all the front-end engineers that you see working at bigger companies." Building a BFF means the frontend team needs to know API design, GraphQL, and at least the high-level shape of extending a microservice.</p>
+</section>
+
+<section class="topic" id="t7">
+  <p class="num">07</p>
+  <h2>Load Balancing</h2>
+  <p>A "typical Node.js server is pretty powerful — you can usually satisfy up to <strong>2,000 to 10,000 concurrent requests</strong>." Beyond that, identical server instances are spun up and an application load balancer splits traffic between them.</p>
+  <div class="callout">
+    <span class="label">How deep a frontend engineer actually needs to go</span>
+    <p>"You don't need to go so deep into it, but do make sure you know about it." The video suggests being able to set up a small load balancer with Nginx + Docker Compose as a learning exercise, while noting most cloud providers (AWS, GCP) provision one "in seconds" — "it's very uncommon that you need to manually set up one, but it's important that you know about it."</p>
+  </div>
+</section>
+
+<section class="topic" id="t8">
+  <p class="num">08</p>
+  <h2>Docker &amp; Kubernetes</h2>
+  <p><strong>Problem:</strong> a distributed system spans different technologies (Python microservices, Node.js services, Vue/Next apps), each with a different build and deployment process.</p>
+  <p><strong>Docker</strong> packages an application into an image via a Dockerfile "recipe" — app code, runtime (e.g. Node.js for a Next.js app), and OS (typically Linux) all bundled together. "Wherever you find a host that runs Docker, you can run that image" — no separately installing the right Node version, PHP, or dependencies.</p>
+  <p><strong>Container orchestration</strong> (Kubernetes, AWS ECS) then manages the deployment pipeline, runs multiple instances, restarts containers on failure, and load-balances between them.</p>
+  <div class="callout good">
+    <span class="label">The expectation, stated directly</span>
+    <p>"Do you need to know Kubernetes as a front end engineer? No. You do need to know about it. And you will see a lot of front-end positions that mention either Kubernetes or container systems or ECS." Framed reassuringly: "don't be scared, you don't need to become a DevOps engineer by tomorrow, but you should be able to at a high level understand where it fits in your architecture."</p>
+  </div>
+</section>
+
+<section class="topic" id="t9">
+  <p class="num">09</p>
+  <h2>CDN</h2>
+  <p><strong>The physics problem:</strong> a US user hitting a Europe-based app pays a real, unavoidable latency cost — "there's no physical way you can work around it... there is the limit of the speed of light." Estimated cost: <strong>200–250 milliseconds</strong> added per request.</p>
+  <p><strong>Fix:</strong> a network of edge locations distributed globally; the origin server pushes static assets to them, and a user's request gets redirected to the geographically closest edge — a <strong>cache hit</strong> in the video's own terminology. <strong>Cache invalidation</strong> is the flip side: the server pushes a new version, but old copies can linger at edges, which is why module bundlers use cache-busting to guarantee users get the latest version on deploy.</p>
+  <p class="mono" style="font-size:13px;color:var(--muted);">Called out as going beyond simple placement: modern CDNs also handle compression and cache-policy management — "the fastest and most cost-effective way to increase web performance... out of the box."</p>
+</section>
+
+<div class="groupband"><h2>Consistency at scale</h2><span>topics 10 – 13</span></div>
+
+<section class="topic" id="t10">
+  <p class="num">10</p>
+  <h2>Design Systems</h2>
+  <p><strong>Problem:</strong> independent feature teams releasing independently drift visually — "a button in the product page will look differently than a button on the payment page," and users start to notice the app is really several separate frontends stitched together, on top of the wasted, repeated code.</p>
+  <div class="factgrid">
+    <div class="fact"><div class="k">Layer 1 — design tokens</div><div class="v">Primary color, border definitions, font families — implemented as CSS custom properties (global variables) typically in the shell microfrontend, then fed into every other microfrontend.</div></div>
+    <div class="fact"><div class="k">Layer 2 — component library</div><div class="v">Shared inputs, buttons, etc., consumed as a UI package across every microfrontend — consistency and zero repetition, "the DRY principle applied at the architecture level."</div></div>
+    <div class="fact"><div class="k">Baked in</div><div class="v">Accessibility and unit testing live inside the design system itself, not re-solved per feature team.</div></div>
+  </div>
+  <div class="callout warn">
+    <span class="label">Why this matters even more with AI coding</span>
+    <p>Without a design system, an agent generating a component "will make things up and your UI would just look different — it will be obvious that it was vibe coded." With one, the video's own practice is stated directly: "the first thing I do whenever I get a new project is try to extract from whatever the design is the design system" — then feed it into the coding agent across sessions for consistent, reliable output.</p>
+  </div>
+</section>
+
+<section class="topic" id="t11">
+  <p class="num">11</p>
+  <h2>Design-to-Code MCP</h2>
+  <p>An MCP (Model Context Protocol) server here is described as "the glue layer between design tools and coding agents" — instead of designers building in Figma and engineers manually re-implementing it in code, a Figma MCP server plugs directly into the coding agent for rapid assembly of a feature into a vertical slice. The video frames this as the direction "most companies are moving towards."</p>
+  <p><strong>Skill expectation:</strong> know what MCP servers are, know your design tool's MCP capabilities, and ideally be able to plug one in yourself — or build the connection if it doesn't exist yet. Claude Code is named as the most-used coding agent in enterprise, with Codex mentioned as an alternative.</p>
+</section>
+
+<section class="topic" id="t12">
+  <p class="num">12</p>
+  <h2>Atomic CSS &amp; Tailwind</h2>
+  <p>The execution layer for design tokens: define a property (e.g. a border style) once, then generate an atomic class (<code>.border</code>) from it. <strong>Tailwind CSS</strong> is described specifically as "an implementation of the atomic CSS architecture style for CSS" — one of (per the video) four architectural styles for CSS in total, with the other three left for a possible future video. In practice, developers only reach for the pre-defined atomic classes instead of writing bespoke CSS per component.</p>
+</section>
+
+<section class="topic" id="t13">
+  <p class="num">13</p>
+  <h2>Monorepo</h2>
+  <p><strong>Problem with many separate repos</strong> ("thousands of repos" at scale): different code styles, different dependency versions, inconsistent TypeScript adoption, inconsistent lint configs — <strong>architectural drift</strong>, where projects diverge too far from a shared standard. A real cost named directly: "if you're a developer and you change teams, you have to relearn everything."</p>
+  <p><strong>Fix:</strong> one repository holding every application, with tooling that operates across all of them at once — <code>npm run build</code> in a monorepo builds every application individually, from one command.</p>
+  <div class="callout good">
+    <span class="label">Why this specifically matters for AI coding</span>
+    <p>"A monorepo gives coding agents the context they need to make changes across service boundaries." Worked example: while building a microfrontend, the agent notices a reusable pattern and extracts it straight into a shared design-system component — in one session. Without a monorepo, "you have to somehow feed those two different repositories to your coding engines and everything becomes harder." Direct recommendation: combining microfrontends + microservices with a monorepo is "usually the most efficient way to work with AI."</p>
+  </div>
+</section>
+
+<div class="groupband"><h2>AI-native UI</h2><span>topic 14</span></div>
+
+<section class="topic" id="t14">
+  <p class="num">14</p>
+  <h2>MCP UI</h2>
+  <p>Framed as the hybrid of a traditional website and an LLM-powered chat app — "the glue in between them, the duct tape, let's say that." Traditional chat UI: send a query, get text back. MCP UI's addition: the LLM's answer can also render actual UI components, not just text.</p>
+  <div class="callout">
+    <span class="label">Worked example from the video</span>
+    <p>Searching for event venues for an annual in-person meetup across European (and possibly US) locations — the chat interface renders venue results, lets you keep drilling in conversationally, and generates maps, all inside one chat application.</p>
+  </div>
+  <p><strong>Mechanically:</strong> the model harness provides the registries and MCP servers in context; the LLM sends back both a text answer and an instruction to render a specific component ("div"); the frontend parses that instruction from the LLM's response and renders it. An MCP resource is declared to the LLM ("there's this resource, use it in this scenario, this is the answer you can give"), and the frontend has to parse and render whatever comes back.</p>
+  <div class="callout good">
+    <span class="label">The video's actual take on "chat replaces UI"</span>
+    <p>Direct pushback on a common narrative: "a lot of people were saying that there's no more need for a UI now that we have a chat. I disagree... the UI is a very useful way to communicate things." The predicted future is a hybrid — not chat replacing frontend engineers, but frontend engineers combining the LLM approach with traditional web UI, especially for specific edge cases the video says "goes way beyond the current AI hype."</p>
+  </div>
+</section>
+
+<div class="groupband"><h2>Performance</h2><span>topics 15 – 18</span></div>
+
+<section class="topic" id="t15">
+  <p class="num">15</p>
+  <h2>Core Web Vitals</h2>
+  <p>Three metrics, measured and benchmarked by Google, each covering a different performance dimension — called out as "the most important pattern that you'll even see now mentioned in job descriptions for front-end engineers."</p>
+  <div class="tablewrap">
+  <table>
+    <tr><th>Metric</th><th>Dimension</th><th>Measures</th></tr>
+    <tr><td><b>LCP</b> — Largest Contentful Paint</td><td>Loading speed</td><td>Time from entering the URL to the largest page element rendering</td></tr>
+    <tr><td><b>INP</b> — Interaction to Next Paint</td><td>Interactivity speed</td><td>Time from a user interaction to the UI repainting — relevant to how component frameworks re-render</td></tr>
+    <tr><td><b>CLS</b> — Cumulative Layout Shift</td><td>Visual stability</td><td>How much the UI shifts around while the page loads</td></tr>
+  </table>
+  </div>
+  <div class="diagram">
+    <svg viewBox="0 0 820 130" xmlns="http://www.w3.org/2000/svg">
+      <g font-family="IBM Plex Mono" font-size="10">
+        <rect x="10" y="45" width="100" height="40" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.3"/><text x="60" y="69" text-anchor="middle">HTML</text>
+        <line x1="110" y1="65" x2="160" y2="65" stroke="var(--ink-soft)" stroke-width="1.2" marker-end="url(#tf3)"/>
+        <rect x="165" y="45" width="90" height="40" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.3"/><text x="210" y="69" text-anchor="middle">DOM</text>
+        <line x1="255" y1="65" x2="305" y2="65" stroke="var(--ink-soft)" stroke-width="1.2" marker-end="url(#tf3)"/>
+        <rect x="310" y="45" width="90" height="40" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.3"/><text x="355" y="69" text-anchor="middle">CSSOM</text>
+        <line x1="400" y1="65" x2="450" y2="65" stroke="var(--ink-soft)" stroke-width="1.2" marker-end="url(#tf3)"/>
+        <rect x="455" y="45" width="100" height="40" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.3"/><text x="505" y="69" text-anchor="middle">Render tree</text>
+        <line x1="555" y1="65" x2="605" y2="65" stroke="var(--ink-soft)" stroke-width="1.2" marker-end="url(#tf3)"/>
+        <rect x="610" y="45" width="90" height="40" rx="6" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.3"/><text x="655" y="69" text-anchor="middle">Layout</text>
+        <line x1="700" y1="65" x2="750" y2="65" stroke="var(--ink-soft)" stroke-width="1.2" marker-end="url(#tf3)"/>
+        <rect x="755" y="45" width="55" height="40" rx="6" fill="var(--good-soft)" stroke="var(--good)" stroke-width="1.3"/><text x="782" y="69" text-anchor="middle">Paint</text>
+      </g>
+      <defs><marker id="tf3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--ink-soft)"/></marker></defs>
+    </svg>
+    <p class="cap">The critical rendering path: HTML → DOM → CSSOM → render tree → layout (node positions/widths) → paint operations sent to the GPU → composite.</p>
+  </div>
+  <p><strong>What drives each metric:</strong> LCP suffers from too much JS, too much CSS, heavy data fetching, or a slow server. CLS comes from CSS/fonts/data loading asynchronously and shifting content — the browser literally screenshots the page to measure how much it moved. INP suffers from slow renders or excessive re-rendering when a user interacts. LCP and CLS are about the initial render; INP is about re-renders.</p>
+</section>
+
+<section class="topic" id="t16">
+  <p class="num">16</p>
+  <h2>Code Splitting &amp; Lazy Loading</h2>
+  <p>A bundler that puts all JavaScript into one file "will totally mess our core web vitals because we load too much JavaScript" up front. <strong>Code splitting</strong> ships only what a specific page needs — a <code>/login</code> page gets login-only code; a chart-heavy dashboard doesn't burden every other page with that weight. Webpack and Vite handle this by understanding the bundle, splitting it, and dynamically loading pieces in coordination with the app's router.</p>
+  <p><strong>Eager vs. lazy:</strong> eager loading fetches everything the moment the page lands; lazy loading defers until it's actually needed — on scroll, on visiting a specific page, on click, on some other interaction. The goal throughout: "on the page you really only ship the things they need."</p>
+</section>
+
+<section class="topic" id="t17">
+  <p class="num">17</p>
+  <h2>Rendering Strategies</h2>
+  <p>The starting problem for every component framework (React, Vue, Angular): a "white screen of death" — HTML loads, but nothing appears until the framework's render function actually executes.</p>
+  <div class="tablewrap">
+  <table>
+    <tr><th>Strategy</th><th>How it works</th><th>Fit</th></tr>
+    <tr><td><b>CSR</b> — Client-Side Rendering</td><td>Get static HTML → fetch dynamic data → render in the browser</td><td>SPAs; weak for performance-critical sites and SEO, since crawlers can't see content until JS executes</td></tr>
+    <tr><td><b>Static pre-rendering</b></td><td>Fully rendered on the server ahead of time; client gets ready HTML+CSS</td><td>Static sites with little interactivity only</td></tr>
+    <tr><td><b>ISG</b> — Incremental Static Generation</td><td>Only regenerates the pages that changed (e.g. a CMS triggers a rebuild on a new blog post)</td><td>Content that changes sometimes, not every request — "built into a framework like Next.js, so you never have to worry about this yourself"</td></tr>
+    <tr><td><b>SSR</b> — Server-Side Rendering</td><td>Client requests the frontend server → it requests the backend for data → renders the app on the server → sends pre-rendered HTML, then <b>hydrates</b> (builds the virtual DOM and attaches it to the pre-built markup)</td><td>Genuinely fast performance + SEO needs only</td></tr>
+  </table>
+  </div>
+  <div class="callout warn">
+    <span class="label">The strongest opinion in the whole video</span>
+    <p>SSR is "one of the most complex approaches" — "be careful with it." Direct criticism of overuse: "a lot of people in a lot of companies jumped into this and they're doing server-side rendering, but that's like building an F1 car to go do the groceries. It's overengineering, and it creates a lot of problems, and then everything is slower." Recommendation: default to simpler solutions "unless your use case really needs the highest performance."</p>
+  </div>
+</section>
+
+<section class="topic" id="t18">
+  <p class="num">18</p>
+  <h2>Real-Time Data Fetching</h2>
+  <p>Framed as part of the "vertically integrated" frontend engineer's job — plain request-response doesn't cover every case, especially ones needing ongoing updates.</p>
+  <div class="tablewrap">
+  <table>
+    <tr><th>Approach</th><th>Mechanism</th><th>Trade-off</th></tr>
+    <tr><td><b>Polling</b></td><td>Keep calling an endpoint until an event occurs (e.g. poll a transaction-status endpoint until "completed"); trivial with <code>setTimeout</code></td><td>Simple, but over-calls the server, scales poorly, and risks race conditions — "very simple, but not the most performant"</td></tr>
+    <tr><td><b>WebSockets</b></td><td>Open bidirectional channel; both sides send messages freely (e.g. a chat app)</td><td>Real overhead, complex to implement, resource-intensive on the server — "for most use cases this is not really needed"</td></tr>
+    <tr><td><b>SSE</b> — Server-Sent Events</td><td>Client sends one message; server streams updates back over that connection — inherently asymmetric</td><td>The natural fit for AI chat: "you send a query and then just wait... the server is sending a lot of messages but you usually only send one"</td></tr>
+  </table>
+  </div>
+  <div class="callout good">
+    <span class="label">Where this shows up in practice</span>
+    <p>Named directly as what powers most LLM applications' token streaming — the OpenAI npm package uses this under the hood. Observable in the browser: open the network tab in ChatGPT or Claude, find the conversation request, and see the event stream delivering chunks of the answer as they arrive — "that's how you build these cool UIs" for streamed responses. Explicitly not WebSockets and not polling.</p>
+  </div>
+</section>
+
+<div class="groupband"><h2>Wrap-up</h2><span>topic 19</span></div>
+
+<section class="topic" id="t19">
+  <p class="num">19</p>
+  <h2>Where to Go Deeper</h2>
+  <p>The video closes by pointing to two follow-ups on the same channel: one covering the full set of frontend architectures a frontend engineer needs, and a second going deeper into web performance, CSS, and component frameworks specifically — material the video frames as what shows up in senior-level interviews.</p>
+</section>
+
+<footer>
+  Notes compiled from "Frontend System Design Explained w/ Senior Engineer" — theSeniorDev (youtube.com/watch?v=KuClyhvSzXk).
+</footer>
+
+</main>
+</div>

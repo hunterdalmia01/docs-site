@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mac Keyboard Shortcuts — Complete Reference</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+  :root{
+    --paper: #f2f3f5;
+    --paper-raised: #ffffff;
+    --ink: #1c2126;
+    --muted: #5a6270;
+    --faint: #8b93a0;
+    --line: #dcdfe4;
+    --line-soft: #e8eaee;
+    --accent: #b5651d;
+    --accent-soft: #f7e9dc;
+    --key-bg: #22262c;
+    --key-ink: #f2f3f5;
+    --key-shadow: #0e1013;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper: #14171c;
+      --paper-raised: #1b1f26;
+      --ink: #e9ebef;
+      --muted: #9aa1ac;
+      --faint: #676f7b;
+      --line: #2b303a;
+      --line-soft: #22262e;
+      --accent: #e0955a;
+      --accent-soft: #2e2620;
+      --key-bg: #e9ebef;
+      --key-ink: #16181c;
+      --key-shadow: #05060a;
+    }
+  }
+
+  *{ box-sizing: border-box; }
+  html{ scroll-behavior: smooth; }
+  body{
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3{
+    font-family: 'Sora', system-ui, sans-serif;
+    text-wrap: balance;
+    margin: 0;
+  }
+  code, .mono{ font-family: 'IBM Plex Mono', ui-monospace, monospace; }
+  a{ color: var(--accent); }
+
+  .page{
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 60px 24px 100px;
+  }
+
+  /* ---------- Header ---------- */
+  .eyebrow{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    font-weight: 600;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .eyebrow::before{
+    content: "";
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+  h1.title{
+    font-size: clamp(30px, 4.2vw, 42px);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    margin-top: 10px;
+  }
+  .subtitle{
+    color: var(--muted);
+    font-size: 16.5px;
+    margin-top: 12px;
+    max-width: 64ch;
+  }
+
+  /* ---------- Key legend ---------- */
+  .legend{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-top: 28px;
+    padding: 18px 20px;
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+  }
+  .legend-item{
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    font-size: 13.5px;
+    color: var(--muted);
+  }
+
+  kbd{
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--key-ink);
+    background: var(--key-bg);
+    border-radius: 6px;
+    box-shadow: 0 2px 0 var(--key-shadow);
+  }
+
+  /* ---------- Jump nav ---------- */
+  .jump{
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 24px;
+  }
+  .navlink{
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--muted);
+    text-decoration: none;
+    background: var(--paper-raised);
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    padding: 6px 13px;
+    transition: border-color .15s ease, color .15s ease;
+  }
+  .navlink:hover{ border-color: var(--accent); color: var(--accent); }
+
+  /* ---------- Sections ---------- */
+  section.cat{
+    margin-top: 52px;
+    scroll-margin-top: 24px;
+  }
+  .cat-head{
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .cat-num{
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--faint);
+  }
+  .cat-head h2{ font-size: 20px; font-weight: 700; }
+  .cat-desc{
+    margin-top: 8px;
+    color: var(--muted);
+    font-size: 14.5px;
+    max-width: 68ch;
+  }
+
+  .rows{
+    margin-top: 16px;
+    display: flex;
+    flex-direction: column;
+  }
+  .row{
+    display: grid;
+    grid-template-columns: 220px 1fr;
+    gap: 20px;
+    align-items: start;
+    padding: 14px 4px;
+    border-bottom: 1px solid var(--line-soft);
+  }
+  .row:last-child{ border-bottom: none; }
+  .keys{
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    flex-wrap: wrap;
+    padding-top: 1px;
+  }
+  .plus{ color: var(--faint); font-size: 12px; }
+  .row-body .name{
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--ink);
+  }
+  .row-body .desc{
+    margin-top: 3px;
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  @media (max-width: 600px){
+    .row{ grid-template-columns: 1fr; gap: 8px; }
+  }
+
+  /* ---------- Footer ---------- */
+  .note{
+    margin-top: 56px;
+    padding: 20px 22px;
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 10px;
+    background: var(--paper-raised);
+    font-size: 14px;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+  .note strong{ color: var(--ink); }
+
+  .footline{
+    margin-top: 32px;
+    padding-top: 18px;
+    border-top: 1px solid var(--line);
+    font-size: 12.5px;
+    color: var(--faint);
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="eyebrow">macOS &middot; Reference Sheet</div>
+  <h1 class="title">Mac Keyboard Shortcuts</h1>
+  <p class="subtitle">A complete, categorized reference of the keyboard shortcuts that cover the vast majority of everyday Mac use — system navigation, window management, text editing, screenshots, browsing, search, and accessibility.</p>
+
+  <div class="legend">
+    <div class="legend-item"><kbd>&#8984;</kbd> Command</div>
+    <div class="legend-item"><kbd>&#8997;</kbd> Option</div>
+    <div class="legend-item"><kbd>&#8963;</kbd> Control</div>
+    <div class="legend-item"><kbd>&#8679;</kbd> Shift</div>
+    <div class="legend-item"><kbd>fn</kbd> Function</div>
+    <div class="legend-item"><kbd>&#8617;</kbd> Return</div>
+    <div class="legend-item"><kbd>&#9003;</kbd> Delete</div>
+    <div class="legend-item"><kbd>&#9099;</kbd> Escape</div>
+    <div class="legend-item"><kbd>&#8594;</kbd> Arrow keys</div>
+  </div>
+
+  <nav class="jump">
+    <a class="navlink" href="#s1">System &amp; Sleep</a>
+    <a class="navlink" href="#s2">Windows &amp; Apps</a>
+    <a class="navlink" href="#s3">Finder &amp; Files</a>
+    <a class="navlink" href="#s4">Text Editing</a>
+    <a class="navlink" href="#s5">Screenshots</a>
+    <a class="navlink" href="#s6">Safari &amp; Browsing</a>
+    <a class="navlink" href="#s7">Spotlight &amp; Search</a>
+    <a class="navlink" href="#s8">Accessibility</a>
+    <a class="navlink" href="#s9">Special Characters</a>
+  </nav>
+
+  <!-- 1 -->
+  <section class="cat" id="s1">
+    <div class="cat-head"><span class="cat-num">01</span><h2>System, Power &amp; Sleep</h2></div>
+    <p class="cat-desc">Shortcuts for controlling the machine itself — waking, sleeping, restarting, and force-quitting frozen apps.</p>
+    <div class="rows">
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>Space</kbd></div>
+        <div class="row-body"><div class="name">Open Spotlight Search</div><div class="desc">Opens the system-wide search overlay to find apps, files, documents, and perform quick calculations or conversions.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8997;</kbd><span class="plus">+</span><kbd>&#9003;</kbd></div>
+        <div class="row-body"><div class="name">Force Quit dialog</div><div class="desc">Opens the Force Quit Applications window, letting you select and terminate a frozen or unresponsive app.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8997;</kbd><span class="plus">+</span><kbd>&#8963;</kbd><span class="plus">+</span><kbd>&#9003;</kbd></div>
+        <div class="row-body"><div class="name">Force quit the frontmost app</div><div class="desc">Immediately force-quits the currently active application without opening the Force Quit dialog first.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8963;</kbd><span class="plus">+</span>Power</div>
+        <div class="row-body"><div class="name">Force restart</div><div class="desc">Immediately restarts the Mac without saving open documents — use only when the system is completely unresponsive.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8963;</kbd><span class="plus">+</span>Power</div>
+        <div class="row-body"><div class="name">Shutdown / Restart / Sleep dialog</div><div class="desc">Opens a dialog offering Restart, Sleep, and Shut Down options.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8997;</kbd><span class="plus">+</span>Power</div>
+        <div class="row-body"><div class="name">Put the display to sleep</div><div class="desc">Immediately sleeps the screen while keeping the Mac itself running.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8963;</kbd><span class="plus">+</span>Q</div>
+        <div class="row-body"><div class="name">Lock the screen instantly</div><div class="desc">Locks the Mac and returns to the login screen, requiring a password (or Touch ID) to resume.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8963;</kbd><span class="plus">+</span>Eject / Power</div>
+        <div class="row-body"><div class="name">Log out of the current user</div><div class="desc">Prompts to log out of the current macOS user account.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 -->
+  <section class="cat" id="s2">
+    <div class="cat-head"><span class="cat-num">02</span><h2>Windows, Apps &amp; Mission Control</h2></div>
+    <p class="cat-desc">Switching between apps, arranging windows, and navigating between desktops/Spaces.</p>
+    <div class="rows">
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>Tab</div>
+        <div class="row-body"><div class="name">Switch between open apps</div><div class="desc">Hold Command and press Tab repeatedly to cycle through the app switcher; release to jump to the highlighted app.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8679;</kbd><span class="plus">+</span>Tab</div>
+        <div class="row-body"><div class="name">Switch apps in reverse order</div><div class="desc">Cycles backward through the app switcher instead of forward.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>`</div>
+        <div class="row-body"><div class="name">Cycle windows within the same app</div><div class="desc">Switches between multiple open windows belonging to the currently active application.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>W</div>
+        <div class="row-body"><div class="name">Close the current window</div><div class="desc">Closes the frontmost window without quitting the application itself.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8997;</kbd><span class="plus">+</span>W</div>
+        <div class="row-body"><div class="name">Close all windows of the app</div><div class="desc">Closes every open window belonging to the frontmost application in one action.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>Q</div>
+        <div class="row-body"><div class="name">Quit the current app</div><div class="desc">Fully quits the frontmost application, closing all its windows and ending its process.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>M</div>
+        <div class="row-body"><div class="name">Minimize the front window</div><div class="desc">Sends the active window to the Dock.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8997;</kbd><span class="plus">+</span>M</div>
+        <div class="row-body"><div class="name">Minimize all windows of the app</div><div class="desc">Minimizes every window belonging to the frontmost application at once.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys">Control<span class="plus">+</span>&#8593;</div>
+        <div class="row-body"><div class="name">Open Mission Control</div><div class="desc">Shows all open windows and Spaces (virtual desktops) at once, arranged for quick navigation.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys">Control<span class="plus">+</span>&#8592; / &#8594;</div>
+        <div class="row-body"><div class="name">Move between Spaces (desktops)</div><div class="desc">Switches to the desktop space immediately to the left or right of the current one.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys">Control<span class="plus">+</span>&#8595;</div>
+        <div class="row-body"><div class="name">App Exposé</div><div class="desc">Shows all windows of the currently active application, spread out for easy selection.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys">fn<span class="plus">+</span>F / Globe<span class="plus">+</span>F</div>
+        <div class="row-body"><div class="name">Toggle full screen</div><div class="desc">Expands the active window to fill the entire display (equivalent to the green traffic-light button).</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 -->
+  <section class="cat" id="s3">
+    <div class="cat-head"><span class="cat-num">03</span><h2>Finder &amp; File Management</h2></div>
+    <p class="cat-desc">Navigating, organizing, and acting on files and folders in Finder.</p>
+    <div class="rows">
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>N</div>
+        <div class="row-body"><div class="name">New Finder window</div><div class="desc">Opens a fresh Finder window at your default location.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8679;</kbd><span class="plus">+</span>N</div>
+        <div class="row-body"><div class="name">New folder</div><div class="desc">Creates a new folder in the current Finder location, ready for renaming.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>&#8592;</div>
+        <div class="row-body"><div class="name">Delete an item / Move to Trash</div><div class="desc">Moves the selected file or folder to the Trash.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8679;</kbd><span class="plus">+</span>&#8592;</div>
+        <div class="row-body"><div class="name">Empty the Trash</div><div class="desc">Permanently deletes everything currently in the Trash after a confirmation prompt.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys">Space</div>
+        <div class="row-body"><div class="name">Quick Look</div><div class="desc">Previews the selected file — image, PDF, document, or video — in a pop-up window without opening its app.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>I</div>
+        <div class="row-body"><div class="name">Get Info</div><div class="desc">Opens the info panel for the selected item, showing size, kind, permissions, and tags.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>D</div>
+        <div class="row-body"><div class="name">Duplicate the selected item</div><div class="desc">Creates an identical copy of the selected file or folder in the same location.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>C then <kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8997;</kbd><span class="plus">+</span>V</div>
+        <div class="row-body"><div class="name">Copy and paste, moving the original</div><div class="desc">Copies a file, then pastes it as a move rather than a duplicate — equivalent to cut-and-paste for files.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>&#8593;</div>
+        <div class="row-body"><div class="name">Go up one folder level</div><div class="desc">Navigates to the parent folder of the currently open Finder location.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8679;</kbd><span class="plus">+</span>G</div>
+        <div class="row-body"><div class="name">Go to Folder</div><div class="desc">Opens a text field to jump directly to a folder by typing its path.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8679;</kbd><span class="plus">+</span>.</div>
+        <div class="row-body"><div class="name">Show hidden files</div><div class="desc">Toggles visibility of hidden files and folders (those starting with a dot) in Finder.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>R (on a selected item)</div>
+        <div class="row-body"><div class="name">Reveal original of an alias</div><div class="desc">Jumps to and highlights the original file that a selected alias/shortcut points to.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4 -->
+  <section class="cat" id="s4">
+    <div class="cat-head"><span class="cat-num">04</span><h2>Text Editing &amp; Navigation</h2></div>
+    <p class="cat-desc">Selecting, moving through, and formatting text in any app — these largely mirror standard system-wide text shortcuts.</p>
+    <div class="rows">
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>A</div>
+        <div class="row-body"><div class="name">Select all</div><div class="desc">Selects every item in the current document, list, or window.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>C / X / V</div>
+        <div class="row-body"><div class="name">Copy, Cut, Paste</div><div class="desc">The standard clipboard trio for duplicating, removing, and inserting selected content.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8679;</kbd><span class="plus">+</span>V</div>
+        <div class="row-body"><div class="name">Paste and Match Style</div><div class="desc">Pastes clipboard text while stripping its original formatting, adopting the destination's style instead.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>Z / <kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8679;</kbd><span class="plus">+</span>Z</div>
+        <div class="row-body"><div class="name">Undo / Redo</div><div class="desc">Steps backward or forward through your recent edit history.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8997;</kbd><span class="plus">+</span>&#8592; / &#8594;</div>
+        <div class="row-body"><div class="name">Jump one word left/right</div><div class="desc">Moves the cursor a full word at a time instead of one character.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>&#8592; / &#8594;</div>
+        <div class="row-body"><div class="name">Jump to start/end of line</div><div class="desc">Moves the cursor to the beginning or end of the current line.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>&#8593; / &#8595;</div>
+        <div class="row-body"><div class="name">Jump to start/end of document</div><div class="desc">Moves the cursor to the very top or bottom of the document.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8679;</kbd><span class="plus">+</span>arrow keys</div>
+        <div class="row-body"><div class="name">Extend text selection</div><div class="desc">Combine Shift with any of the movement shortcuts above to select text as the cursor moves.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8997;</kbd><span class="plus">+</span><kbd>&#9003;</kbd></div>
+        <div class="row-body"><div class="name">Delete the previous word</div><div class="desc">Deletes backward one full word at a time instead of one character.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>B / I / U</div>
+        <div class="row-body"><div class="name">Bold, Italic, Underline</div><div class="desc">Applies the corresponding text formatting to the current selection in apps that support rich text.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>F</div>
+        <div class="row-body"><div class="name">Find</div><div class="desc">Opens a search field to find text within the current document or page.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>G / <kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8679;</kbd><span class="plus">+</span>G</div>
+        <div class="row-body"><div class="name">Find next / previous</div><div class="desc">Jumps to the next or previous match of the current Find search.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 -->
+  <section class="cat" id="s5">
+    <div class="cat-head"><span class="cat-num">05</span><h2>Screenshots &amp; Screen Recording</h2></div>
+    <p class="cat-desc">Capturing exactly what's on screen — full display, a selected region, a specific window, or video.</p>
+    <div class="rows">
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8679;</kbd><span class="plus">+</span>3</div>
+        <div class="row-body"><div class="name">Capture the entire screen</div><div class="desc">Takes a screenshot of the whole display and saves it to the Desktop (or clipboard, if combined with Control).</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8679;</kbd><span class="plus">+</span>4</div>
+        <div class="row-body"><div class="name">Capture a selected region</div><div class="desc">Turns the cursor into a crosshair to drag-select a specific area of the screen to capture.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8679;</kbd><span class="plus">+</span>4, then Space</div>
+        <div class="row-body"><div class="name">Capture a single window</div><div class="desc">After triggering region capture, pressing Space switches to window mode — click any window to capture just it, complete with its drop shadow.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8679;</kbd><span class="plus">+</span>5</div>
+        <div class="row-body"><div class="name">Open the Screenshot toolbar</div><div class="desc">Opens a persistent on-screen toolbar with options for full-screen, window, and selection screenshots, plus screen recording.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys">Add Control to any capture shortcut</div>
+        <div class="row-body"><div class="name">Copy to clipboard instead of saving</div><div class="desc">Holding Control while taking any screenshot copies the image directly to the clipboard rather than saving a file to the Desktop.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6 -->
+  <section class="cat" id="s6">
+    <div class="cat-head"><span class="cat-num">06</span><h2>Safari &amp; Browsing</h2></div>
+    <p class="cat-desc">Tab and window management for Safari — most of these also work in Chrome and other major browsers on macOS.</p>
+    <div class="rows">
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>T</div>
+        <div class="row-body"><div class="name">Open a new tab</div><div class="desc">Opens a fresh browser tab in the current window.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>W</div>
+        <div class="row-body"><div class="name">Close the current tab</div><div class="desc">Closes just the active tab, leaving the rest of the window open.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8679;</kbd><span class="plus">+</span>T</div>
+        <div class="row-body"><div class="name">Reopen the last closed tab</div><div class="desc">Restores the most recently closed tab, including its scroll position — press repeatedly to restore several in a row.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys">Control<span class="plus">+</span>Tab / <kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8997;</kbd><span class="plus">+</span>&#8594;</div>
+        <div class="row-body"><div class="name">Switch to the next tab</div><div class="desc">Moves focus to the tab immediately to the right of the current one.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>L</div>
+        <div class="row-body"><div class="name">Jump to the address bar</div><div class="desc">Highlights the URL bar so you can immediately type a new address or search term.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>R</div>
+        <div class="row-body"><div class="name">Reload the page</div><div class="desc">Refreshes the current webpage.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>[ / ]</div>
+        <div class="row-body"><div class="name">Go back / forward</div><div class="desc">Navigates to the previous or next page in the tab's browsing history.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>+ / -</div>
+        <div class="row-body"><div class="name">Zoom in / out</div><div class="desc">Increases or decreases the page's zoom level for easier reading.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>D</div>
+        <div class="row-body"><div class="name">Bookmark the current page</div><div class="desc">Adds the active page to your bookmarks.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 -->
+  <section class="cat" id="s7">
+    <div class="cat-head"><span class="cat-num">07</span><h2>Spotlight, Siri &amp; System Search</h2></div>
+    <p class="cat-desc">Fast ways to find files, launch apps, and get quick answers without touching the mouse.</p>
+    <div class="rows">
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>Space</div>
+        <div class="row-body"><div class="name">Spotlight Search</div><div class="desc">The universal search overlay — launch apps, find files, do quick math, check the weather, or convert units, all from one field.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8997;</kbd><span class="plus">+</span>Space</div>
+        <div class="row-body"><div class="name">Open Finder search window</div><div class="desc">Opens a dedicated Finder window pre-set to search mode, useful for browsing multiple search results at once.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys">Hold fn or <kbd>&#8984;</kbd><span class="plus">+</span>Space (config.)</div>
+        <div class="row-body"><div class="name">Activate Siri</div><div class="desc">Triggers Siri voice assistant, depending on your configured shortcut in System Settings.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 8 -->
+  <section class="cat" id="s8">
+    <div class="cat-head"><span class="cat-num">08</span><h2>Accessibility</h2></div>
+    <p class="cat-desc">Built-in shortcuts that make the display and interface easier to see, hear, and navigate.</p>
+    <div class="rows">
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8997;</kbd><span class="plus">+</span>8</div>
+        <div class="row-body"><div class="name">Toggle Zoom</div><div class="desc">Turns screen magnification on or off, letting you enlarge whatever the cursor is near.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8997;</kbd><span class="plus">+</span>= / -</div>
+        <div class="row-body"><div class="name">Zoom in / out</div><div class="desc">Once Zoom is enabled, increases or decreases the magnification level.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span><kbd>&#8997;</kbd><span class="plus">+</span>F5</div>
+        <div class="row-body"><div class="name">Open Accessibility Shortcuts panel</div><div class="desc">Opens a quick-access panel for toggling VoiceOver, Zoom, and other accessibility features.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>F5</div>
+        <div class="row-body"><div class="name">Toggle VoiceOver</div><div class="desc">Turns Apple's built-in screen reader on or off, narrating what's on screen.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 9 -->
+  <section class="cat" id="s9">
+    <div class="cat-head"><span class="cat-num">09</span><h2>Special Characters &amp; Emoji</h2></div>
+    <p class="cat-desc">Inserting symbols, accented letters, and emoji without switching keyboard layouts.</p>
+    <div class="rows">
+      <div class="row">
+        <div class="keys"><kbd>&#8984;</kbd><span class="plus">+</span>Control<span class="plus">+</span>Space</div>
+        <div class="row-body"><div class="name">Open the Emoji &amp; Symbols viewer</div><div class="desc">Opens a searchable palette of emoji and special characters that can be inserted into any text field.</div></div>
+      </div>
+      <div class="row">
+        <div class="keys">Hold a letter key</div>
+        <div class="row-body"><div class="name">Accented character picker</div><div class="desc">Press and hold most letter keys to reveal a popover of accented variants (e.g. holding "e" offers é, è, ê, ë).</div></div>
+      </div>
+      <div class="row">
+        <div class="keys"><kbd>&#8997;</kbd><span class="plus">+</span>2 / <kbd>&#8997;</kbd><span class="plus">+</span>R / etc.</div>
+        <div class="row-body"><div class="name">Common Option-key symbols</div><div class="desc">The Option key combined with letter/number keys types symbols like ™ (Option+2), ® (Option+R), € (Option+Shift+2), and £ (Option+3) — layout dependent.</div></div>
+      </div>
+    </div>
+  </section>
+
+  <div class="note">
+    <strong>Note on scope:</strong> These are the standard system-level and Finder/Safari shortcuts built into macOS. App-specific shortcuts (in apps like Pages, Photos, Mail, or third-party software) vary by app — check each app's Help menu, which lists every shortcut it supports, or the Keyboard Shortcuts pane in System Settings to view or customize system-wide bindings.
+  </div>
+
+  <div class="footline">
+    <span>Mac Keyboard Shortcuts &middot; Complete Reference</span>
+    <span>9 categories</span>
+  </div>
+
+</div>
+</body>
+</html>

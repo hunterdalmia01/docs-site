@@ -1,0 +1,853 @@
+<title>System Design Field Notes</title>
+<style>
+:root{
+  --bg:#f4f6f8;
+  --bg-raised:#ffffff;
+  --ink:#1b2430;
+  --ink-soft:#4a5568;
+  --muted:#7c8797;
+  --line:#d7dde4;
+  --line-soft:#e6eaef;
+  --accent:#2f6fed;
+  --accent-soft:#e8f0fe;
+  --accent-ink:#1a4fc4;
+  --good:#2f9e5c;
+  --good-soft:#e6f6ec;
+  --warn:#c47a1f;
+  --warn-soft:#fbf0de;
+  --code-bg:#eef1f5;
+  --shadow: 0 1px 2px rgba(27,36,48,0.04), 0 8px 24px -12px rgba(27,36,48,0.12);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12161c;
+    --bg-raised:#1a2029;
+    --ink:#e6eaf0;
+    --ink-soft:#b6c0cc;
+    --muted:#7e8ba0;
+    --line:#2b3340;
+    --line-soft:#232a35;
+    --accent:#6d9bff;
+    --accent-soft:#1c2740;
+    --accent-ink:#a8c2ff;
+    --good:#5cc98a;
+    --good-soft:#16281f;
+    --warn:#e0a748;
+    --warn-soft:#2c2313;
+    --code-bg:#1c222c;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12161c;
+  --bg-raised:#1a2029;
+  --ink:#e6eaf0;
+  --ink-soft:#b6c0cc;
+  --muted:#7e8ba0;
+  --line:#2b3340;
+  --line-soft:#232a35;
+  --accent:#6d9bff;
+  --accent-soft:#1c2740;
+  --accent-ink:#a8c2ff;
+  --good:#5cc98a;
+  --good-soft:#16281f;
+  --warn:#e0a748;
+  --warn-soft:#2c2313;
+  --code-bg:#1c222c;
+  --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 8px 24px -12px rgba(0,0,0,0.5);
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"IBM Plex Serif", Georgia, "Times New Roman", serif;
+  font-size:17px;
+  line-height:1.65;
+}
+::selection{ background:var(--accent-soft); color:var(--accent-ink); }
+
+h1,h2,h3,h4{
+  font-family:"IBM Plex Sans", "Segoe UI", Arial, sans-serif;
+  color:var(--ink);
+  text-wrap:balance;
+  font-weight:600;
+  letter-spacing:-0.01em;
+}
+
+.mono{ font-family:"IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace; }
+
+a{ color:var(--accent-ink); }
+
+/* ---------- shell ---------- */
+.shell{
+  display:grid;
+  grid-template-columns: 260px minmax(0,1fr);
+  max-width:1180px;
+  margin:0 auto;
+}
+@media (max-width: 900px){
+  .shell{ grid-template-columns: 1fr; }
+  nav.toc{ display:none; }
+}
+
+/* ---------- nav ---------- */
+nav.toc{
+  position:sticky;
+  top:0;
+  align-self:start;
+  height:100vh;
+  overflow-y:auto;
+  padding:32px 20px 32px 28px;
+  border-right:1px solid var(--line-soft);
+}
+nav.toc .eyebrow{
+  font-family:"IBM Plex Mono", monospace;
+  font-size:11px;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin:0 0 14px;
+}
+nav.toc ol{
+  list-style:none;
+  margin:0;
+  padding:0;
+  counter-reset:toc;
+}
+nav.toc li{
+  counter-increment:toc;
+  margin-bottom:2px;
+}
+nav.toc a{
+  display:flex;
+  gap:8px;
+  padding:6px 8px;
+  border-radius:6px;
+  color:var(--ink-soft);
+  text-decoration:none;
+  font-family:"IBM Plex Sans", sans-serif;
+  font-size:13.5px;
+  line-height:1.35;
+}
+nav.toc a:hover{ background:var(--line-soft); color:var(--ink); }
+nav.toc a::before{
+  content: counter(toc, decimal-leading-zero);
+  font-family:"IBM Plex Mono", monospace;
+  color:var(--muted);
+  font-size:12px;
+  flex-shrink:0;
+  padding-top:1px;
+}
+
+/* ---------- main ---------- */
+main{ padding:48px 40px 120px; min-width:0; }
+@media (max-width: 640px){ main{ padding:32px 20px 90px; } }
+
+header.hero{
+  margin-bottom:40px;
+  padding-bottom:28px;
+  border-bottom:1px solid var(--line);
+}
+header.hero .eyebrow{
+  font-family:"IBM Plex Mono", monospace;
+  font-size:12px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--accent-ink);
+  margin:0 0 10px;
+}
+header.hero h1{
+  font-size:clamp(28px,4vw,40px);
+  margin:0 0 12px;
+  line-height:1.1;
+}
+header.hero p.dek{
+  font-family:"IBM Plex Serif", serif;
+  color:var(--ink-soft);
+  font-size:17px;
+  max-width:60ch;
+  margin:0 0 16px;
+}
+header.hero .source{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px 18px;
+  font-family:"IBM Plex Mono", monospace;
+  font-size:12.5px;
+  color:var(--muted);
+}
+header.hero .source b{ color:var(--ink-soft); font-weight:500; }
+
+section{ margin:0 0 56px; scroll-margin-top:24px; }
+section > .num{
+  font-family:"IBM Plex Mono", monospace;
+  color:var(--accent-ink);
+  font-size:13px;
+  letter-spacing:0.08em;
+}
+section > h2{
+  font-size:24px;
+  margin:2px 0 6px;
+  padding-bottom:14px;
+  border-bottom:1px solid var(--line);
+}
+section > h3{
+  font-size:17px;
+  margin:28px 0 8px;
+  color:var(--ink);
+}
+section p{ margin:0 0 14px; max-width:70ch; color:var(--ink-soft); }
+section p strong{ color:var(--ink); font-weight:600; }
+section ul, section ol{ margin:0 0 16px; padding-left:22px; color:var(--ink-soft); max-width:66ch; }
+section li{ margin-bottom:6px; }
+section li::marker{ color:var(--muted); }
+section li b{ color:var(--ink); font-weight:600;}
+
+code{
+  font-family:"IBM Plex Mono", monospace;
+  background:var(--code-bg);
+  padding:1.5px 6px;
+  border-radius:4px;
+  font-size:0.9em;
+  color:var(--accent-ink);
+}
+
+/* ---------- callouts ---------- */
+.callout{
+  border:1px solid var(--line);
+  border-left:3px solid var(--accent);
+  background:var(--bg-raised);
+  border-radius:6px;
+  padding:14px 18px;
+  margin:16px 0;
+  max-width:70ch;
+  box-shadow:var(--shadow);
+}
+.callout .label{
+  font-family:"IBM Plex Mono", monospace;
+  font-size:11px;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--accent-ink);
+  margin-bottom:6px;
+  display:block;
+}
+.callout p{ margin:0; color:var(--ink-soft); }
+.callout p + p{ margin-top:8px; }
+
+.callout.warn{ border-left-color:var(--warn); }
+.callout.warn .label{ color:var(--warn); }
+.callout.good{ border-left-color:var(--good); }
+.callout.good .label{ color:var(--good); }
+
+/* ---------- two column facts ---------- */
+.factgrid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+  gap:12px;
+  margin:18px 0 20px;
+  max-width:820px;
+}
+.fact{
+  border:1px solid var(--line);
+  background:var(--bg-raised);
+  border-radius:8px;
+  padding:14px 16px;
+  box-shadow:var(--shadow);
+}
+.fact .k{
+  font-family:"IBM Plex Mono", monospace;
+  font-size:11px;
+  letter-spacing:0.06em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:5px;
+}
+.fact .v{ font-size:14.5px; color:var(--ink); font-family:"IBM Plex Sans",sans-serif; line-height:1.45;}
+
+/* ---------- diagram frame ---------- */
+.diagram{
+  border:1px solid var(--line);
+  background:var(--bg-raised);
+  border-radius:10px;
+  padding:20px 20px 16px;
+  margin:20px 0 24px;
+  box-shadow:var(--shadow);
+  max-width:820px;
+  overflow-x:auto;
+}
+.diagram .cap{
+  font-family:"IBM Plex Mono", monospace;
+  font-size:11.5px;
+  color:var(--muted);
+  margin-top:10px;
+  letter-spacing:0.02em;
+}
+.diagram svg{ display:block; width:100%; height:auto; }
+.diagram svg text{ font-family:"IBM Plex Sans", sans-serif; }
+.diagram svg .mono-t{ font-family:"IBM Plex Mono", monospace; }
+
+/* ---------- table ---------- */
+.tablewrap{ overflow-x:auto; max-width:820px; margin:16px 0 24px; }
+table{ border-collapse:collapse; width:100%; font-size:14.5px; font-family:"IBM Plex Sans",sans-serif; }
+th,td{ text-align:left; padding:9px 14px; border-bottom:1px solid var(--line-soft); color:var(--ink-soft); }
+th{ color:var(--muted); font-weight:500; font-size:12px; text-transform:uppercase; letter-spacing:0.05em; }
+td b, td code{ color:var(--ink); }
+tr:last-child td{ border-bottom:none; }
+
+/* ---------- stage progression list ---------- */
+.stage{
+  display:grid;
+  grid-template-columns: 34px 1fr;
+  gap:0 16px;
+  max-width:760px;
+}
+.stage .dot-col{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.stage .dot{
+  width:11px; height:11px; border-radius:50%;
+  background:var(--accent);
+  margin-top:5px;
+  flex-shrink:0;
+}
+.stage .rule{
+  width:1px;
+  flex:1;
+  background:var(--line);
+  margin-top:4px;
+}
+.stage .body{ padding-bottom:26px; }
+.stage .body h4{
+  margin:0 0 4px;
+  font-size:15px;
+}
+.stage .body p{ margin:0; font-size:15px; }
+
+footer{
+  border-top:1px solid var(--line);
+  margin-top:20px;
+  padding-top:24px;
+  font-family:"IBM Plex Mono", monospace;
+  font-size:12px;
+  color:var(--muted);
+}
+</style>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Serif:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+
+<div class="shell">
+
+<nav class="toc">
+  <p class="eyebrow">Contents</p>
+  <ol>
+    <li><a href="#what-is">What system design is</a></li>
+    <li><a href="#requirements">Functional vs. non-functional</a></li>
+    <li><a href="#questions">Five questions before designing</a></li>
+    <li><a href="#hld-lld">High-level vs. low-level</a></li>
+    <li><a href="#scaling">Vertical vs. horizontal scaling</a></li>
+    <li><a href="#stage1">Stage 1 — one server</a></li>
+    <li><a href="#stage2">Stage 2 — three failures at 10k users</a></li>
+    <li><a href="#lb">Load balancing</a></li>
+    <li><a href="#stateless">Stateless vs. stateful</a></li>
+    <li><a href="#data-model">Data modeling</a></li>
+    <li><a href="#databases">SQL vs. NoSQL</a></li>
+    <li><a href="#indexing">Indexing</a></li>
+    <li><a href="#caching">Caching &amp; invalidation</a></li>
+    <li><a href="#replication">Replication</a></li>
+    <li><a href="#sharding">Sharding</a></li>
+    <li><a href="#monolith">Monolith vs. microservices</a></li>
+    <li><a href="#network">HTTP, HTTPS, latency</a></li>
+    <li><a href="#final">Final architecture</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<header class="hero">
+  <p class="eyebrow">Video notes</p>
+  <h1>System Design Field Notes</h1>
+  <p class="dek">A structured walkthrough of how a single $10/month server for a photo-sharing app grows, failure by failure, into a load-balanced, cached, replicated, and sharded system — the reasoning at each step, not just the vocabulary.</p>
+  <div class="source">
+    <span><b>Source:</b> "System Design for Beginners (2026)"</span>
+    <span><b>Channel:</b> KodeKloud</span>
+    <span><b>Video ID:</b> SE2KF-vxvS0</span>
+  </div>
+</header>
+
+<section id="what-is">
+  <p class="num">01</p>
+  <h2>What system design actually is</h2>
+  <p><strong>System design is the skill of choosing the right components and putting them in the right place to solve a software problem.</strong> It's not about memorizing a list of tools (Redis, Kafka, sharding) — it's about knowing which of those tools a given problem actually needs, and why.</p>
+  <p>The video frames it as a career-progression skill:</p>
+  <div class="factgrid">
+    <div class="fact"><div class="k">Junior engineer</div><div class="v">Builds a specific feature with known inputs and outputs.</div></div>
+    <div class="fact"><div class="k">Mid / senior engineer</div><div class="v">Figures out the approach and how it fits the rest of the system.</div></div>
+    <div class="fact"><div class="k">Senior / staff engineer</div><div class="v">Designs the architecture the whole system will run on.</div></div>
+  </div>
+  <p>Throughout, the video uses one running example — a photo-sharing app — and evolves its architecture one failure at a time, so every component gets introduced as the answer to a concrete problem rather than a buzzword to memorize.</p>
+</section>
+
+<section id="requirements">
+  <p class="num">02</p>
+  <h2>Functional vs. non-functional requirements</h2>
+  <p><strong>Functional requirements</strong> describe what the app does — sign up, upload a photo, follow a user, scroll a feed, like, comment. They either work or they don't, and you can see them in a demo.</p>
+  <p><strong>Non-functional requirements</strong> describe the quality of how it does it — speed, durability, scale, availability, cost. They're invisible in a demo, but users feel them immediately.</p>
+  <div class="callout">
+    <span class="label">Key insight</span>
+    <p>Two apps can share identical functional requirements — Instagram and a private family photo app both "let you upload and view photos" — and still be completely different systems, because their non-functional requirements (scale, availability, cost tolerance) diverge wildly. <strong>Almost every component that gets added later in this doc exists purely to satisfy a non-functional requirement.</strong></p>
+  </div>
+</section>
+
+<section id="questions">
+  <p class="num">03</p>
+  <h2>Five questions to ask before designing anything</h2>
+  <p>The video's recommended opening move — in an interview or in real work — is to spend the first few minutes asking questions, not drawing boxes.</p>
+  <div class="tablewrap">
+  <table>
+    <tr><th>Question</th><th>Why it matters</th><th>Photo app answer</th></tr>
+    <tr><td><b>How many users, growing how fast?</b></td><td>Determines whether you design for thousands or millions.</td><td>10,000 today, doubling every few months → design for millions.</td></tr>
+    <tr><td><b>Read-heavy or write-heavy?</b></td><td>Tells you where to spend optimization effort.</td><td>Users scroll hundreds of photos a month but post 2–5 → heavily read-heavy. Optimize the feed path; uploads can be a little slower.</td></tr>
+    <tr><td><b>What can never be lost?</b></td><td>Sets durability and backup requirements.</td><td>Photos: never lose them. Like count off by a few for a couple seconds: totally fine.</td></tr>
+    <tr><td><b>How fast must it feel?</b></td><td>Sets latency budgets per feature.</td><td>Feed &lt;200ms feels instant; upload taking 2–3s feels acceptable — it "feels like work."</td></tr>
+    <tr><td><b>What's the budget?</b></td><td>Every replica, cache, and extra server is a recurring monthly cost.</td><td>The right design meets the requirements at the lowest cost, not the fanciest one.</td></tr>
+  </table>
+  </div>
+</section>
+
+<section id="hld-lld">
+  <p class="num">04</p>
+  <h2>High-level design vs. low-level design</h2>
+  <p>A recurring interview failure mode is answering at the wrong "altitude." Knowing which one you're being asked for — and saying so out loud — is itself a skill.</p>
+  <div class="factgrid">
+    <div class="fact"><div class="k">High-level design (HLD)</div><div class="v">The zoomed-out blueprint: app servers, databases, caches, queues, CDN, and how requests flow between them. E.g. "Design Instagram."</div></div>
+    <div class="fact"><div class="k">Low-level design (LLD)</div><div class="v">Zoomed into one feature: function names, data structures, class layout. E.g. "Design the like feature" or "Design an in-memory cache."</div></div>
+  </div>
+  <div class="callout good">
+    <span class="label">Interview move</span>
+    <p>State your altitude up front: <em>"I'll stay at a high level — components, data flow, and trade-offs"</em> — so you're not penalized for skipping code, or for droning on about servers when asked to design a single cache class.</p>
+  </div>
+</section>
+
+<section id="scaling">
+  <p class="num">05</p>
+  <h2>Vertical vs. horizontal scaling</h2>
+  <div class="tablewrap">
+  <table>
+    <tr><th></th><th>Vertical scaling</th><th>Horizontal scaling</th></tr>
+    <tr><td><b>What it means</b></td><td>Make the one server bigger — more CPU, RAM, faster disk.</td><td>Add more servers of modest size.</td></tr>
+    <tr><td><b>Code changes</b></td><td>None needed.</td><td>Needs a load balancer and often a stateless design.</td></tr>
+    <tr><td><b>Cost curve</b></td><td>Non-linear — bigger machines cost disproportionately more.</td><td>Roughly linear — ten cheap machines vs. one giant one.</td></tr>
+    <tr><td><b>Ceiling</b></td><td>Hard limit: the largest machine money can buy.</td><td>No real upper limit — add an 11th machine anytime.</td></tr>
+    <tr><td><b>Failure risk</b></td><td>Still a single point of failure.</td><td>Failure of one machine doesn't take down the system.</td></tr>
+  </table>
+  </div>
+  <p><strong>Rule of thumb from the video:</strong> start vertical (it's simpler, no architecture changes), and shift to horizontal once you hit its ceiling or need to eliminate the single point of failure.</p>
+</section>
+
+<section id="stage1">
+  <p class="num">06</p>
+  <h2>Stage 1 — one server does everything</h2>
+  <p>The photo app starts on a single ~$10/month server that holds the web app, the database, and the uploaded photo files all in one place.</p>
+  <div class="diagram">
+    <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg">
+      <rect x="290" y="40" width="180" height="120" rx="10" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="380" y="65" text-anchor="middle" font-size="13" font-weight="600" fill="var(--ink)">Single Server</text>
+      <text x="380" y="86" text-anchor="middle" font-size="11" class="mono-t" fill="var(--ink-soft)">web app</text>
+      <text x="380" y="104" text-anchor="middle" font-size="11" class="mono-t" fill="var(--ink-soft)">database</text>
+      <text x="380" y="122" text-anchor="middle" font-size="11" class="mono-t" fill="var(--ink-soft)">photo files</text>
+      <text x="380" y="145" text-anchor="middle" font-size="10.5" class="mono-t" fill="var(--muted)">~$10 / month</text>
+      <circle cx="60" cy="100" r="16" fill="none" stroke="var(--ink-soft)" stroke-width="2"/>
+      <line x1="60" y1="116" x2="60" y2="150" stroke="var(--ink-soft)" stroke-width="2"/>
+      <line x1="60" y1="128" x2="40" y2="145" stroke="var(--ink-soft)" stroke-width="2"/>
+      <line x1="60" y1="128" x2="80" y2="145" stroke="var(--ink-soft)" stroke-width="2"/>
+      <text x="60" y="180" text-anchor="middle" font-size="11" fill="var(--muted)">user</text>
+      <line x1="90" y1="100" x2="285" y2="100" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arrow1)"/>
+      <defs><marker id="arrow1" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--accent)"/></marker></defs>
+    </svg>
+    <p class="cap">Simple, cheap, easy to test — and a single point of failure. This is the correct starting point for most new apps.</p>
+  </div>
+</section>
+
+<section id="stage2">
+  <p class="num">07</p>
+  <h2>Stage 2 — three failures show up at 10,000 users</h2>
+  <p>Growth to 10,000 users exposes three distinct, independent failure modes on that one server. Each gets its own fix — this is the mechanism the whole rest of the video repeats.</p>
+
+  <div class="stage">
+    <div class="dot-col"><div class="dot"></div><div class="rule"></div></div>
+    <div class="body">
+      <h4>Failure 1 — CPU / RAM overload</h4>
+      <p>Page load time creeps from 200ms to 10 seconds as one machine tries to serve everyone. <b>Fix:</b> add a second server (the first step into horizontal scaling) — which immediately raises a new question: which server should handle each incoming request?</p>
+    </div>
+  </div>
+  <div class="stage">
+    <div class="dot-col"><div class="dot"></div><div class="rule"></div></div>
+    <div class="body">
+      <h4>Failure 2 — database overload</h4>
+      <p>The same trending photos get queried over and over by millions of users hitting the database directly. <b>Fix:</b> introduce a cache (Redis) in front of the database — reads that used to take 20–30ms now return in about 1ms.</p>
+    </div>
+  </div>
+  <div class="stage">
+    <div class="dot-col"><div class="dot"></div></div>
+    <div class="body">
+      <h4>Failure 3 — single point of failure</h4>
+      <p>A disk failure, a blown power supply, or someone unplugging the wrong cable takes the whole app down. <b>Fix:</b> replicate the database onto separate machines, and move photo files off the app server entirely into external object storage (e.g. S3).</p>
+    </div>
+  </div>
+</section>
+
+<section id="lb">
+  <p class="num">08</p>
+  <h2>Load balancing</h2>
+  <p>A load balancer is <strong>not special hardware</strong> — just another server running load-balancing software, sitting in front of the app servers and deciding which one handles each request.</p>
+  <h3>Request flow</h3>
+  <ol>
+    <li>User types <code>photoapp.com</code></li>
+    <li>DNS lookup returns the <b>load balancer's</b> IP address — never an app server's IP directly</li>
+    <li>The load balancer picks a healthy app server</li>
+    <li>That server queries the database and returns the response</li>
+  </ol>
+  <div class="diagram">
+    <svg viewBox="0 0 760 240" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="55" cy="120" r="15" fill="none" stroke="var(--ink-soft)" stroke-width="2"/>
+      <line x1="55" y1="135" x2="55" y2="165" stroke="var(--ink-soft)" stroke-width="2"/>
+      <line x1="55" y1="146" x2="38" y2="162" stroke="var(--ink-soft)" stroke-width="2"/>
+      <line x1="55" y1="146" x2="72" y2="162" stroke="var(--ink-soft)" stroke-width="2"/>
+      <text x="55" y="190" text-anchor="middle" font-size="11" fill="var(--muted)">user</text>
+      <line x1="82" y1="120" x2="180" y2="120" stroke="var(--ink-soft)" stroke-width="1.5" marker-end="url(#arrow2)"/>
+      <rect x="185" y="90" width="130" height="60" rx="8" fill="var(--warn-soft)" stroke="var(--warn)" stroke-width="1.5"/>
+      <text x="250" y="115" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">Load</text>
+      <text x="250" y="131" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">Balancer</text>
+      <line x1="315" y1="105" x2="410" y2="55" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arrow2)"/>
+      <line x1="315" y1="120" x2="410" y2="120" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arrow2)"/>
+      <line x1="315" y1="135" x2="410" y2="185" stroke="var(--accent)" stroke-width="1.5" marker-end="url(#arrow2)"/>
+      <defs><marker id="arrow2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--accent)"/></marker></defs>
+      <g>
+        <rect x="415" y="30" width="110" height="50" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="470" y="60" text-anchor="middle" font-size="12" class="mono-t" fill="var(--ink)">server 1</text>
+        <rect x="415" y="95" width="110" height="50" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="470" y="125" text-anchor="middle" font-size="12" class="mono-t" fill="var(--ink)">server 2</text>
+        <rect x="415" y="160" width="110" height="50" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="470" y="190" text-anchor="middle" font-size="12" class="mono-t" fill="var(--ink)">server 3</text>
+      </g>
+      <line x1="525" y1="55" x2="620" y2="120" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="3 3"/>
+      <line x1="525" y1="120" x2="620" y2="120" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="3 3"/>
+      <line x1="525" y1="185" x2="620" y2="120" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="3 3"/>
+      <ellipse cx="670" cy="120" rx="55" ry="34" fill="var(--good-soft)" stroke="var(--good)" stroke-width="1.5"/>
+      <text x="670" y="116" text-anchor="middle" font-size="11" font-weight="600" fill="var(--ink)">database</text>
+      <text x="670" y="130" text-anchor="middle" font-size="9.5" class="mono-t" fill="var(--muted)">+ cache</text>
+    </svg>
+    <p class="cap">Load balancer = "reverse proxy." Health checks ping each server every few seconds; unresponsive servers stop receiving traffic.</p>
+  </div>
+  <h3>Routing algorithms</h3>
+  <div class="factgrid">
+    <div class="fact"><div class="k">Round-robin</div><div class="v">1st request → server 1, 2nd → server 2, 3rd → server 3, then wraps around.</div></div>
+    <div class="fact"><div class="k">Least connections</div><div class="v">Send the request to whichever server is currently handling the fewest active requests.</div></div>
+    <div class="fact"><div class="k">Weighted distribution</div><div class="v">Account for servers of different sizes — bigger servers get proportionally more traffic.</div></div>
+  </div>
+</section>
+
+<section id="stateless">
+  <p class="num">09</p>
+  <h2>Stateless vs. stateful servers</h2>
+  <div class="callout warn">
+    <span class="label">The bug</span>
+    <p>A user logs in and their session gets stored in <b>server 1's memory</b>. Their next request gets load-balanced to server 5, which has never heard of them — and they get logged out. The server was <b>stateful</b>: it kept important information in its own local memory.</p>
+  </div>
+  <p><strong>Fix:</strong> make servers stateless. Strip all important data out of individual servers and put it somewhere shared — login sessions move into a shared Redis store that every server can read. Servers become disposable: you can add or remove them freely without affecting any user.</p>
+  <div class="factgrid">
+    <div class="fact"><div class="k">Not the same as stateful</div><div class="v">Storing photo files in external object storage (S3) does <b>not</b> make a server stateful — the data was never local to begin with.</div></div>
+    <div class="fact"><div class="k">The tempting wrong fix</div><div class="v">"Sticky sessions" (always route a user to the same server) just recreates the original single-server problem and defeats load distribution.</div></div>
+  </div>
+</section>
+
+<section id="data-model">
+  <p class="num">10</p>
+  <h2>Data modeling — start from access patterns</h2>
+  <p>Before choosing a database, list the questions the app actually needs to answer:</p>
+  <ul>
+    <li>Show me a user's profile</li>
+    <li>Show all photos by a user</li>
+    <li>Show my home feed</li>
+    <li>Upload a photo</li>
+    <li>Like a photo</li>
+    <li>Comment on a photo</li>
+    <li>Follow another user</li>
+  </ul>
+  <p>Those questions define the entities:</p>
+  <div class="tablewrap">
+  <table>
+    <tr><th>Entity</th><th>Fields</th></tr>
+    <tr><td><b>Users</b></td><td><code>id</code>, <code>name</code>, <code>email</code></td></tr>
+    <tr><td><b>Photos</b></td><td><code>id</code>, <code>posted_by</code> (user id), <code>caption</code>, <code>upload_time</code>, <code>image_link</code> (not the image itself)</td></tr>
+    <tr><td><b>Likes</b></td><td><code>user_id</code>, <code>photo_id</code>, <code>timestamp</code></td></tr>
+    <tr><td><b>Comments</b></td><td><code>user_id</code>, <code>photo_id</code>, <code>comment_text</code>, <code>timestamp</code></td></tr>
+    <tr><td><b>Follows</b></td><td><code>follower_id</code>, <code>followed_user_id</code></td></tr>
+  </table>
+  </div>
+  <p><strong>Principle:</strong> every relationship is modeled as a pair of IDs plus the minimum extra information needed.</p>
+</section>
+
+<section id="databases">
+  <p class="num">11</p>
+  <h2>SQL vs. NoSQL</h2>
+  <div class="tablewrap">
+  <table>
+    <tr><th></th><th>SQL (e.g. PostgreSQL)</th><th>NoSQL (e.g. MongoDB)</th></tr>
+    <tr><td><b>Used for</b></td><td>Core data: users, photos, likes, comments, follows</td><td>Secondary data: preferences, behavior tracking, theme settings</td></tr>
+    <tr><td><b>Why</b></td><td>Structured, same fields every row; heavy relationships between entities; ACID transactions keep it consistent; joins power feed generation.</td><td>Unstructured / flexible — records don't need matching shape.</td></tr>
+  </table>
+  </div>
+  <p>In real production systems, it's normal for <b>one application to use both databases</b>, routing each write or read to whichever store fits the shape of that data.</p>
+</section>
+
+<section id="indexing">
+  <p class="num">12</p>
+  <h2>Indexing</h2>
+  <p>As the user base grows, queries slow down because the database is scanning every row linearly to find matches.</p>
+  <p><strong>Fix:</strong> create an index on columns that are searched often — e.g. <code>posted_by</code> (fast lookup of a user's photos) and <code>upload_time</code> (fast chronological sort). An index works like a book's index: it points straight to the relevant rows instead of scanning the whole table.</p>
+  <div class="callout warn">
+    <span class="label">Trade-off</span>
+    <p>Every index adds work to each write (insert/update/delete), since the index itself has to be maintained. Best practice: find your actually-slow queries first, then index the columns behind them — typically 3–5 indexes per table, not one on everything.</p>
+  </div>
+</section>
+
+<section id="caching">
+  <p class="num">13</p>
+  <h2>Caching and cache invalidation</h2>
+  <h3>What makes something worth caching</h3>
+  <ul>
+    <li>Small in size</li>
+    <li>Read frequently</li>
+    <li>Changes rarely</li>
+  </ul>
+  <p>Examples from the app: trending photos, popular profile cards (username, picture, bio), and login sessions (read on every single request).</p>
+  <div class="diagram">
+    <svg viewBox="0 0 760 170" xmlns="http://www.w3.org/2000/svg">
+      <rect x="30" y="55" width="120" height="55" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="90" y="87" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">app server</text>
+      <line x1="150" y1="70" x2="290" y2="70" stroke="var(--good)" stroke-width="1.6" marker-end="url(#arrow3)"/>
+      <text x="220" y="62" text-anchor="middle" font-size="10.5" fill="var(--good)">1. check cache</text>
+      <rect x="295" y="35" width="130" height="55" rx="8" fill="var(--good-soft)" stroke="var(--good)" stroke-width="1.5"/>
+      <text x="360" y="58" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">Redis cache</text>
+      <text x="360" y="74" text-anchor="middle" font-size="10" class="mono-t" fill="var(--muted)">hit ≈ 1ms</text>
+      <line x1="150" y1="95" x2="290" y2="130" stroke="var(--warn)" stroke-width="1.6" stroke-dasharray="4 3" marker-end="url(#arrow3)"/>
+      <text x="220" y="140" text-anchor="middle" font-size="10.5" fill="var(--warn)">2. miss → query DB</text>
+      <rect x="295" y="110" width="130" height="55" rx="8" fill="var(--warn-soft)" stroke="var(--warn)" stroke-width="1.5"/>
+      <text x="360" y="133" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">database</text>
+      <text x="360" y="149" text-anchor="middle" font-size="10" class="mono-t" fill="var(--muted)">read ≈ 20–30ms</text>
+      <line x1="425" y1="120" x2="380" y2="92" stroke="var(--muted)" stroke-width="1.2" stroke-dasharray="3 3" marker-end="url(#arrow3)"/>
+      <text x="480" y="105" font-size="10" fill="var(--muted)">3. write result back to cache</text>
+      <defs><marker id="arrow3" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="context-stroke"/></marker></defs>
+    </svg>
+    <p class="cap">Cache hit: Redis answers directly, database untouched. Cache miss: query the database, then populate the cache for next time.</p>
+  </div>
+  <h3>Keeping the cache honest</h3>
+  <div class="tablewrap">
+  <table>
+    <tr><th>Strategy</th><th>How it works</th><th>Watch out for</th></tr>
+    <tr><td><b>TTL (time-to-live)</b></td><td>"Lazy" approach — entry auto-expires after N seconds, next request pulls fresh data.</td><td><b>Cache stampede:</b> if a hot entry expires and many requests miss at once, they all hammer the database simultaneously. Defense: stagger TTLs so hot entries don't all expire together.</td></tr>
+    <tr><td><b>Active invalidation</b></td><td>The moment underlying data changes, immediately delete the cache entry so the next read misses and re-fetches fresh data.</td><td>Requires remembering to invalidate on <i>every</i> write path — easy to miss one.</td></tr>
+  </table>
+  </div>
+  <div class="factgrid">
+    <div class="fact"><div class="k">Feed</div><div class="v">~30s TTL</div></div>
+    <div class="fact"><div class="k">Profile cards</div><div class="v">A few minutes TTL</div></div>
+    <div class="fact"><div class="k">Trending lists</div><div class="v">~60s TTL</div></div>
+    <div class="fact"><div class="k">Security / privacy settings</div><div class="v">No TTL — active invalidation only</div></div>
+  </div>
+</section>
+
+<section id="replication">
+  <p class="num">14</p>
+  <h2>Database replication</h2>
+  <p>Three-copy architecture: <b>one primary</b> handles every write; <b>two replicas</b> answer reads only. The load balancer spreads read traffic across all three.</p>
+  <div class="diagram">
+    <svg viewBox="0 0 760 200" xmlns="http://www.w3.org/2000/svg">
+      <rect x="300" y="20" width="150" height="55" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+      <text x="375" y="43" text-anchor="middle" font-size="12" font-weight="600" fill="var(--ink)">Primary DB</text>
+      <text x="375" y="60" text-anchor="middle" font-size="10" class="mono-t" fill="var(--muted)">all writes</text>
+      <line x1="335" y1="75" x2="200" y2="125" stroke="var(--good)" stroke-width="1.5" marker-end="url(#arrow4)"/>
+      <line x1="415" y1="75" x2="550" y2="125" stroke="var(--good)" stroke-width="1.5" marker-end="url(#arrow4)"/>
+      <text x="260" y="100" font-size="10" fill="var(--good)">replicate</text>
+      <text x="480" y="100" font-size="10" fill="var(--good)">replicate</text>
+      <rect x="130" y="130" width="140" height="50" rx="8" fill="var(--good-soft)" stroke="var(--good)" stroke-width="1.5"/>
+      <text x="200" y="152" text-anchor="middle" font-size="11" font-weight="600" fill="var(--ink)">Replica A</text>
+      <text x="200" y="167" text-anchor="middle" font-size="9.5" class="mono-t" fill="var(--muted)">reads only</text>
+      <rect x="480" y="130" width="140" height="50" rx="8" fill="var(--good-soft)" stroke="var(--good)" stroke-width="1.5"/>
+      <text x="550" y="152" text-anchor="middle" font-size="11" font-weight="600" fill="var(--ink)">Replica B</text>
+      <text x="550" y="167" text-anchor="middle" font-size="9.5" class="mono-t" fill="var(--muted)">reads only</text>
+      <defs><marker id="arrow4" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--good)"/></marker></defs>
+    </svg>
+    <p class="cap">Replicas never accept writes directly — two independently-writable copies would conflict (e.g. X=9 on one, X=13 on the other).</p>
+  </div>
+  <div class="callout warn">
+    <span class="label">Replication lag</span>
+    <p>Copying data from primary to replicas takes a few milliseconds, which makes replicas <b>eventually consistent</b>, not immediately consistent. Real bug: a user uploads a photo (written to primary), instantly refreshes their profile (read from a replica that hasn't caught up yet) — and the new photo appears to be missing.</p>
+    <p><b>Fix:</b> route a user's reads of their own just-written data to the primary; other users' reads can safely use replicas.</p>
+  </div>
+  <p><strong>Failover:</strong> if the primary dies, a replica gets promoted to be the new primary and the system stays online.</p>
+  <div class="callout warn">
+    <span class="label">Replication ≠ backup</span>
+    <p>Replicas blindly copy everything — including mistakes. Delete data on the primary and that delete cascades to every replica. Real backups (point-in-time snapshots you can restore from) are a separate concern.</p>
+  </div>
+</section>
+
+<section id="sharding">
+  <p class="num">15</p>
+  <h2>Database sharding</h2>
+  <p>Eventually the data itself — billions of photos — no longer fits on one machine, no matter how many read replicas you have. <strong>Sharding</strong> splits the data itself across multiple database machines, so no single database holds everything.</p>
+  <div class="diagram">
+    <svg viewBox="0 0 760 190" xmlns="http://www.w3.org/2000/svg">
+      <text x="40" y="30" font-size="12" class="mono-t" fill="var(--ink-soft)">shard = user_id % 4</text>
+      <g>
+        <rect x="40" y="55" width="150" height="55" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="115" y="78" text-anchor="middle" font-size="11" font-weight="600" fill="var(--ink)">Shard 0</text>
+        <text x="115" y="94" text-anchor="middle" font-size="9.5" class="mono-t" fill="var(--muted)">ids ≡ 0</text>
+      </g>
+      <g>
+        <rect x="215" y="55" width="150" height="55" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="290" y="78" text-anchor="middle" font-size="11" font-weight="600" fill="var(--ink)">Shard 1</text>
+        <text x="290" y="94" text-anchor="middle" font-size="9.5" class="mono-t" fill="var(--muted)">ids ≡ 1</text>
+      </g>
+      <g>
+        <rect x="390" y="55" width="150" height="55" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="465" y="78" text-anchor="middle" font-size="11" font-weight="600" fill="var(--ink)">Shard 2</text>
+        <text x="465" y="94" text-anchor="middle" font-size="9.5" class="mono-t" fill="var(--muted)">ids ≡ 2</text>
+      </g>
+      <g>
+        <rect x="565" y="55" width="150" height="55" rx="8" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.5"/>
+        <text x="640" y="78" text-anchor="middle" font-size="11" font-weight="600" fill="var(--ink)">Shard 3</text>
+        <text x="640" y="94" text-anchor="middle" font-size="9.5" class="mono-t" fill="var(--muted)">ids ≡ 3</text>
+      </g>
+      <text x="115" y="140" text-anchor="middle" font-size="10" class="mono-t" fill="var(--good)">user 10 → 10 % 4 = 2 → Shard 2</text>
+      <text x="465" y="140" text-anchor="middle" font-size="10" class="mono-t" fill="var(--good)">↑</text>
+      <text x="290" y="160" text-anchor="middle" font-size="10" class="mono-t" fill="var(--warn)">user 13 → 13 % 4 = 1 → Shard 1</text>
+    </svg>
+    <p class="cap">Shard key: user ID. The routing formula sends each user's data to exactly one shard.</p>
+  </div>
+  <div class="tablewrap">
+  <table>
+    <tr><th>Problem</th><th>What happens</th><th>Fix</th></tr>
+    <tr><td><b>Hot shards</b></td><td>A celebrity account (huge read/write volume) happens to land on the same shard as another celebrity — that shard gets crushed while others sit idle.</td><td>Choose a better shard key / rebalance manually.</td></tr>
+    <tr><td><b>Resharding nightmare</b></td><td>Adding a 5th shard changes the formula from <code>% 4</code> to <code>% 5</code> — user 10 was remainder 2 (Shard 2), now remainder 0 (Shard 0). Almost <i>all</i> data has to physically move.</td><td><b>Consistent hashing:</b> each shard owns a small range of the ID space; a new shard only takes a slice from <i>one</i> neighbor, so only those users move.</td></tr>
+  </table>
+  </div>
+  <p class="mono" style="color:var(--muted); font-size:13px;">MongoDB has sharding built in natively.</p>
+</section>
+
+<section id="monolith">
+  <p class="num">16</p>
+  <h2>Monolith vs. microservices</h2>
+  <div class="tablewrap">
+  <table>
+    <tr><th></th><th>Monolith</th><th>Microservices</th></tr>
+    <tr><td><b>Structure</b></td><td>One codebase, one deployment, all features (signup, upload, feed, likes) in one program.</td><td>Separate services — upload, feed, notifications, likes — each independently deployed.</td></tr>
+    <tr><td><b>Upside</b></td><td>Simple, fast (direct function calls), one thing to test and debug.</td><td>Independent scaling (feed gets 10 servers, upload gets 2), teams work independently.</td></tr>
+    <tr><td><b>Downside</b></td><td>Can't scale one piece independently of the rest.</td><td>Network calls between services add latency and failure risk; one user request touching 5 services makes debugging much harder; needs a bigger team to run well.</td></tr>
+  </table>
+  </div>
+  <div class="callout warn">
+    <span class="label">Cautionary example</span>
+    <p>A 5-person startup ran 30 microservices and ended up spending more time debugging the network between them than building the product. <strong>Recommendation:</strong> start as a monolith (right choice for the photo app at 10,000 users); most real companies run a monolith plus a handful of extracted services — not hundreds of microservices.</p>
+  </div>
+</section>
+
+<section id="network">
+  <p class="num">17</p>
+  <h2>HTTP, HTTPS, latency &amp; bandwidth</h2>
+  <h3>Request flow</h3>
+  <ol>
+    <li><b>DNS lookup:</b> "Where is photoapp.com?" → returns an IP address</li>
+    <li><b>HTTPS handshake:</b> establishes a secure, encrypted channel</li>
+    <li>Client sends the request, server sends the response</li>
+  </ol>
+  <p><code>HTTPS</code> = HTTP + encryption. Over plain HTTP, anyone on the network can read the data as plain text; over HTTPS, it's scrambled in transit.</p>
+  <div class="factgrid">
+    <div class="fact"><div class="k">Latency</div><div class="v">Round-trip time for a single request.</div></div>
+    <div class="fact"><div class="k">Bandwidth</div><div class="v">How much data can flow at once — the "width of the pipe."</div></div>
+  </div>
+  <div class="callout">
+    <span class="label">Worked example</span>
+    <p>A feed that loads slowly is usually a <b>latency</b> problem, not a bandwidth one — e.g. fetching 30 thumbnails one request at a time means 30 separate round trips, each paying the latency cost, even though the total data size is small.</p>
+  </div>
+</section>
+
+<section id="final">
+  <p class="num">18</p>
+  <h2>The final integrated architecture</h2>
+  <div class="diagram">
+    <svg viewBox="0 0 780 460" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="45" cy="40" r="13" fill="none" stroke="var(--ink-soft)" stroke-width="2"/>
+      <line x1="45" y1="53" x2="45" y2="78" stroke="var(--ink-soft)" stroke-width="2"/>
+      <line x1="45" y1="62" x2="30" y2="76" stroke="var(--ink-soft)" stroke-width="2"/>
+      <line x1="45" y1="62" x2="60" y2="76" stroke="var(--ink-soft)" stroke-width="2"/>
+      <text x="45" y="96" text-anchor="middle" font-size="10" fill="var(--muted)">user</text>
+      <text x="140" y="35" font-size="10" class="mono-t" fill="var(--muted)">DNS → LB ip</text>
+      <line x1="65" y1="40" x2="185" y2="40" stroke="var(--ink-soft)" stroke-width="1.4" marker-end="url(#arrowF)"/>
+      <rect x="190" y="20" width="120" height="45" rx="7" fill="var(--warn-soft)" stroke="var(--warn)" stroke-width="1.4"/>
+      <text x="250" y="47" text-anchor="middle" font-size="11" font-weight="600" fill="var(--ink)">Load Balancer</text>
+      <line x1="310" y1="42" x2="380" y2="42" stroke="var(--ink-soft)" stroke-width="1.4" marker-end="url(#arrowF)"/>
+      <rect x="385" y="15" width="330" height="55" rx="7" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.4"/>
+      <text x="550" y="38" text-anchor="middle" font-size="11" font-weight="600" fill="var(--ink)">Stateless App Servers (×N)</text>
+      <text x="550" y="55" text-anchor="middle" font-size="9.5" class="mono-t" fill="var(--muted)">no local session state</text>
+
+      <line x1="480" y1="70" x2="480" y2="105" stroke="var(--good)" stroke-width="1.4" marker-end="url(#arrowF)"/>
+      <rect x="415" y="110" width="140" height="45" rx="7" fill="var(--good-soft)" stroke="var(--good)" stroke-width="1.4"/>
+      <text x="485" y="130" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink)">Redis Cache</text>
+      <text x="485" y="145" text-anchor="middle" font-size="9" class="mono-t" fill="var(--muted)">+ login sessions</text>
+
+      <line x1="620" y1="70" x2="620" y2="105" stroke="var(--muted)" stroke-width="1.4" marker-end="url(#arrowF)"/>
+      <rect x="565" y="110" width="150" height="45" rx="7" fill="var(--line-soft)" stroke="var(--muted)" stroke-width="1.2"/>
+      <text x="640" y="130" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink)">Object Storage</text>
+      <text x="640" y="145" text-anchor="middle" font-size="9" class="mono-t" fill="var(--muted)">photo files (S3)</text>
+
+      <line x1="485" y1="155" x2="485" y2="190" stroke="var(--accent)" stroke-width="1.4" stroke-dasharray="4 3" marker-end="url(#arrowF)"/>
+      <text x="500" y="175" font-size="9.5" fill="var(--accent)">on miss</text>
+      <rect x="360" y="195" width="250" height="50" rx="7" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="1.6"/>
+      <text x="485" y="216" text-anchor="middle" font-size="11" font-weight="600" fill="var(--ink)">PostgreSQL — Primary</text>
+      <text x="485" y="233" text-anchor="middle" font-size="9" class="mono-t" fill="var(--muted)">all writes · indexed columns</text>
+
+      <line x1="410" y1="245" x2="330" y2="290" stroke="var(--good)" stroke-width="1.3" marker-end="url(#arrowF)"/>
+      <line x1="560" y1="245" x2="640" y2="290" stroke="var(--good)" stroke-width="1.3" marker-end="url(#arrowF)"/>
+      <rect x="230" y="295" width="150" height="45" rx="7" fill="var(--good-soft)" stroke="var(--good)" stroke-width="1.3"/>
+      <text x="305" y="315" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink)">Replica A</text>
+      <text x="305" y="330" text-anchor="middle" font-size="9" class="mono-t" fill="var(--muted)">reads · failover</text>
+      <rect x="570" y="295" width="150" height="45" rx="7" fill="var(--good-soft)" stroke="var(--good)" stroke-width="1.3"/>
+      <text x="645" y="315" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink)">Replica B</text>
+      <text x="645" y="330" text-anchor="middle" font-size="9" class="mono-t" fill="var(--muted)">reads · failover</text>
+
+      <line x1="360" y1="220" x2="270" y2="220" stroke="var(--muted)" stroke-width="1.3" marker-end="url(#arrowF)"/>
+      <rect x="90" y="195" width="175" height="50" rx="7" fill="var(--line-soft)" stroke="var(--muted)" stroke-width="1.2"/>
+      <text x="177" y="216" text-anchor="middle" font-size="10.5" font-weight="600" fill="var(--ink)">MongoDB</text>
+      <text x="177" y="233" text-anchor="middle" font-size="9" class="mono-t" fill="var(--muted)">unstructured prefs / behavior</text>
+
+      <line x1="485" y1="245" x2="485" y2="370" stroke="var(--warn)" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#arrowF)"/>
+      <text x="560" y="360" font-size="9.5" fill="var(--warn)">when data outgrows one machine</text>
+      <rect x="150" y="375" width="115" height="42" rx="7" fill="var(--warn-soft)" stroke="var(--warn)" stroke-width="1.2"/>
+      <text x="207" y="401" text-anchor="middle" font-size="10" font-weight="600" fill="var(--ink)">Shard 0</text>
+      <rect x="280" y="375" width="115" height="42" rx="7" fill="var(--warn-soft)" stroke="var(--warn)" stroke-width="1.2"/>
+      <text x="337" y="401" text-anchor="middle" font-size="10" font-weight="600" fill="var(--ink)">Shard 1</text>
+      <rect x="410" y="375" width="115" height="42" rx="7" fill="var(--warn-soft)" stroke="var(--warn)" stroke-width="1.2"/>
+      <text x="467" y="401" text-anchor="middle" font-size="10" font-weight="600" fill="var(--ink)">Shard 2</text>
+      <rect x="540" y="375" width="115" height="42" rx="7" fill="var(--warn-soft)" stroke="var(--warn)" stroke-width="1.2"/>
+      <text x="597" y="401" text-anchor="middle" font-size="10" font-weight="600" fill="var(--ink)">Shard 3</text>
+
+      <defs><marker id="arrowF" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="context-stroke"/></marker></defs>
+    </svg>
+    <p class="cap">Every box on this diagram exists because a specific failure, at a specific scale, demanded it — not because it's a "best practice" to include by default.</p>
+  </div>
+  <p>The system grows from thousands to millions of users the same way it grew from one server to this: add servers, replicate data, cache what's hot, and shard only once a single machine truly can't hold the data anymore.</p>
+</section>
+
+<footer>
+  Notes compiled from "System Design for Beginners (2026)" — KodeKloud (youtube.com/watch?v=SE2KF-vxvS0)
+</footer>
+
+</main>
+</div>
