@@ -7,6 +7,7 @@ import sql from 'highlight.js/lib/languages/sql'
 import json from 'highlight.js/lib/languages/json'
 import yaml from 'highlight.js/lib/languages/yaml'
 import dockerfile from 'highlight.js/lib/languages/dockerfile'
+import { getNote } from '../notes-manifest'
 
 hljs.registerLanguage('javascript', javascript)
 hljs.registerLanguage('bash', bash)
@@ -14,7 +15,6 @@ hljs.registerLanguage('sql', sql)
 hljs.registerLanguage('json', json)
 hljs.registerLanguage('yaml', yaml)
 hljs.registerLanguage('dockerfile', dockerfile)
-import { getNote } from '../notes-manifest'
 
 const props = defineProps({
   folder: { type: String, required: true },
@@ -84,9 +84,39 @@ const bodyHtml = computed(() => {
   return body
 })
 
+// Every note file caps its own top-level wrapper at a fixed reading width
+// (e.g. max-width:1100px; margin:0 auto) and centers it, which leaves big
+// empty gutters on a wide monitor. Rather than hand-edit each note's CSS
+// (different class names, different grid setups per file), we neutralize
+// that cap generically on whichever element is the note's outermost
+// wrapper: drop the max-width/centering so it fills the pane, and - for
+// notes that lay out a fixed sidebar/TOC column plus a fixed-width content
+// column via CSS grid - let just the last column grow to fill the rest of
+// the space instead of staying capped too.
+function stretchToFill() {
+  const wrapper = contentRoot.value?.firstElementChild
+  if (!wrapper) return
+
+  wrapper.style.setProperty('max-width', 'none', 'important')
+  wrapper.style.setProperty('width', '100%', 'important')
+  wrapper.style.setProperty('margin-left', '0', 'important')
+  wrapper.style.setProperty('margin-right', '0', 'important')
+  wrapper.style.setProperty('box-sizing', 'border-box', 'important')
+
+  const cs = getComputedStyle(wrapper)
+  if (cs.display.includes('grid')) {
+    const cols = cs.gridTemplateColumns.trim().split(/\s+/)
+    if (cols.length >= 2) {
+      const stretched = [...cols.slice(0, -1), 'minmax(0,1fr)'].join(' ')
+      wrapper.style.setProperty('grid-template-columns', stretched, 'important')
+    }
+  }
+}
+
 async function renderNote() {
   applyNote(note.value?.html)
   await nextTick()
+  stretchToFill()
   contentRoot.value?.querySelectorAll('pre code').forEach((block) => {
     hljs.highlightElement(block)
   })

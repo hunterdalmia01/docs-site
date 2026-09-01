@@ -24,7 +24,8 @@ import { noteTree } from '../notes-manifest'
   padding: 2.5rem 3rem;
   font-family: system-ui, -apple-system, sans-serif;
   color: #1c1c1f;
-  max-width: 960px;
+  width: 100%;
+  box-sizing: border-box;
 }
 h1 {
   margin: 0 0 0.25rem;
@@ -36,7 +37,7 @@ h1 {
 }
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 1.25rem;
 }
 .folder-card {
