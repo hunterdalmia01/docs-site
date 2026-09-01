@@ -67,4 +67,16 @@ h1 {
 .folder-card a:hover {
   text-decoration: underline;
 }
+
+@media (max-width: 640px) {
+  .home {
+    padding: 1.5rem 1.25rem;
+  }
+  h1 {
+    font-size: 1.5rem;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
 </style>

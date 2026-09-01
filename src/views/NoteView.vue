@@ -97,32 +97,74 @@ function stretchToFill() {
   const wrapper = contentRoot.value?.firstElementChild
   if (!wrapper) return
 
-  // Read the ORIGINAL (still-capped) grid track sizes before we touch
-  // width/max-width, so a fixed-px sidebar/TOC column is captured as it
-  // was authored, not as some already-stretched intermediate value.
-  const originalCols = getComputedStyle(wrapper).display.includes('grid')
-    ? getComputedStyle(wrapper).gridTemplateColumns.trim().split(/\s+/)
-    : null
-
+  // Full-width on every screen size is always correct - no reading-width
+  // cap or centering, phone/tablet/desktop alike.
   wrapper.style.setProperty('max-width', 'none', 'important')
   wrapper.style.setProperty('width', '100%', 'important')
   wrapper.style.setProperty('margin-left', '0', 'important')
   wrapper.style.setProperty('margin-right', '0', 'important')
   wrapper.style.setProperty('box-sizing', 'border-box', 'important')
 
-  if (originalCols && originalCols.length >= 2) {
-    // Keep every column except the last one exactly as authored (that's
-    // the fixed sidebar/TOC rail); let only the last - the reading column -
-    // grow to fill whatever width is now available.
-    const stretched = [...originalCols.slice(0, -1), 'minmax(0,1fr)'].join(' ')
-    wrapper.style.setProperty('grid-template-columns', stretched, 'important')
+  // The grid-column stretch only applies to the desktop TOC+content
+  // layout. Clear any earlier override first so we read what the note's
+  // OWN current @media rule says at THIS width - that's what correctly
+  // collapses a note to a single column on phones/tablets. Locking the
+  // two-column grid in permanently (regardless of viewport) is exactly
+  // what broke mobile/tablet layouts before.
+  wrapper.style.removeProperty('grid-template-columns')
+  const cs = getComputedStyle(wrapper)
+  if (cs.display.includes('grid')) {
+    const cols = cs.gridTemplateColumns.trim().split(/\s+/).filter(Boolean)
+    if (cols.length >= 2) {
+      // Keep every column except the last one exactly as authored (the
+      // fixed sidebar/TOC rail); let only the last - the reading column -
+      // grow to fill whatever width is now available.
+      const stretched = [...cols.slice(0, -1), 'minmax(0,1fr)'].join(' ')
+      wrapper.style.setProperty('grid-template-columns', stretched, 'important')
+    }
+    // else: the note's own responsive rule already collapsed this to a
+    // single column at this width (phone/tablet) - leave it alone, the
+    // width:100% above is all it needs.
+
+    // Grid (and flex) items default to min-width:auto, meaning their
+    // minimum size is their own CONTENT's min-content width (e.g. a long
+    // heading or an un-wrapped word) rather than 0. On a narrow phone
+    // screen that refuses to shrink and blows the whole grid wider than
+    // the viewport - a classic CSS Grid gotcha, independent of anything
+    // above. Forcing min-width:0 on each direct child is the standard fix.
+    for (const child of wrapper.children) {
+      child.style.setProperty('min-width', '0', 'important')
+    }
   }
+}
+
+let resizeTimer = null
+function onResize() {
+  clearTimeout(resizeTimer)
+  resizeTimer = setTimeout(stretchToFill, 100)
+}
+
+// Several notes include wide reference tables. On a phone/tablet those
+// would otherwise force the whole page to scroll sideways; wrap each
+// table in its own horizontally-scrollable strip instead, same trick as
+// a responsive table without touching the note's own markup/CSS.
+function wrapWideTables() {
+  contentRoot.value?.querySelectorAll('table').forEach((table) => {
+    if (table.parentElement?.classList.contains('note-table-scroll')) return
+    const wrap = document.createElement('div')
+    wrap.className = 'note-table-scroll'
+    wrap.style.overflowX = 'auto'
+    wrap.style.maxWidth = '100%'
+    table.parentNode.insertBefore(wrap, table)
+    wrap.appendChild(table)
+  })
 }
 
 async function renderNote() {
   applyNote(note.value?.html)
   await nextTick()
   stretchToFill()
+  wrapWideTables()
   // Web fonts loading in can reflow text and shift intrinsic sizes; run it
   // again once fonts settle so the stretch isn't undone by a later reflow.
   document.fonts?.ready?.then(stretchToFill).catch(() => {})
@@ -132,7 +174,14 @@ async function renderNote() {
 }
 
 watch(() => [props.folder, props.file], renderNote, { immediate: true })
-onBeforeUnmount(clearInjected)
+window.addEventListener('resize', onResize)
+window.addEventListener('orientationchange', onResize)
+onBeforeUnmount(() => {
+  clearInjected()
+  clearTimeout(resizeTimer)
+  window.removeEventListener('resize', onResize)
+  window.removeEventListener('orientationchange', onResize)
+})
 </script>
 
 <template>
